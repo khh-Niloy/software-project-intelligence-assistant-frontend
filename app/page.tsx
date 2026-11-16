@@ -1,69 +1,341 @@
-import Image from "next/image";
+"use client";
+
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { DocumentItem, QAItem } from "../lib/types";
+import {
+  fetchDocuments,
+  uploadDocument,
+  searchDocument,
+  fetchQnas,
+} from "../lib/api";
+import { LeftSidebar, NavItemKey } from "../components/LeftSidebar";
+import { RightSidebar, RightSidebarTab } from "../components/RightSidebar";
+import { ChatSection } from "../components/ChatSection";
+import { GithubQueryPlaceholder } from "../components/GithubQueryPlaceholder";
+import { AlertCircle, CheckCircle, Layers, Menu } from "lucide-react";
 
 export default function Home() {
+  const [activeNav, setActiveNav] = useState<NavItemKey>("doc-query");
+  const [rightTab, setRightTab] = useState<RightSidebarTab>("documents");
+
+  const [documents, setDocuments] = useState<DocumentItem[]>([]);
+  const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(
+    null,
+  );
+  const [history, setHistory] = useState<QAItem[]>([]);
+  const [selectedQAId, setSelectedQAId] = useState<string | null>(null);
+  const [isNewChat, setIsNewChat] = useState<boolean>(true);
+
+  const [isUploading, setIsUploading] = useState(false);
+  const [isLoadingQA, setIsLoadingQA] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+
+  const [mobileView, setMobileView] = useState<"nav" | "main" | "right">(
+    "main",
+  );
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
+
+  const showToast = useCallback(
+    (message: string, type: "success" | "error" = "success") => {
+      setToast({ message, type });
+      setTimeout(() => setToast(null), 4000);
+    },
+    [],
+  );
+
+  // Load Documents from Backend
+  const loadDocuments = useCallback(
+    async (quiet = false) => {
+      if (!quiet) setIsRefreshing(true);
+      try {
+        const docs = await fetchDocuments();
+        setDocuments(docs);
+        if (docs.length > 0) {
+          setSelectedDocumentId((prev) => {
+            if (prev && docs.some((d) => d._id === prev)) return prev;
+            return docs[0]._id;
+          });
+        }
+      } catch (err: unknown) {
+        console.error("Failed to load documents:", err);
+        if (!quiet) {
+          const msg =
+            err instanceof Error
+              ? err.message
+              : "Cannot connect to backend server on port 5000";
+          showToast(msg, "error");
+        }
+      } finally {
+        if (!quiet) setIsRefreshing(false);
+      }
+    },
+    [showToast],
+  );
+
+  // Initial load
+  useEffect(() => {
+    let active = true;
+    Promise.all([fetchDocuments(), fetchQnas()])
+      .then(([docs, qnas]) => {
+        if (active) {
+          setDocuments(docs);
+          setHistory(qnas);
+          if (docs.length > 0) {
+            setSelectedDocumentId((prev) => prev ?? docs[0]._id);
+          }
+        }
+      })
+      .catch((err: unknown) => {
+        if (active) {
+          console.error("Initial load failed:", err);
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setIsInitialLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Auto-poll if any document is currently pending or processing
+  const hasProcessingDocs = useMemo(() => {
+    return documents.some(
+      (d) => d.status === "pending" || d.status === "processing",
+    );
+  }, [documents]);
+
+  useEffect(() => {
+    if (!hasProcessingDocs) return;
+
+    const interval = setInterval(() => {
+      loadDocuments(true);
+    }, 2500);
+
+    return () => clearInterval(interval);
+  }, [hasProcessingDocs, loadDocuments]);
+
+  // Handle Upload
+  const handleUploadFile = async (file: File) => {
+    setIsUploading(true);
+    try {
+      const res = await uploadDocument(file);
+      showToast(
+        `Uploaded "${file.name}" successfully! Indexed with vector embeddings.`,
+        "success",
+      );
+      // Reload documents and auto-select uploaded doc
+      await loadDocuments(true);
+      const newDocId = res.document?._id || res.document?.id;
+      if (newDocId) {
+        setSelectedDocumentId(newDocId);
+      }
+      return res;
+    } catch (err: unknown) {
+      console.error("Upload failed:", err);
+      const msg = err instanceof Error ? err.message : "Upload failed";
+      showToast(msg, "error");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Handle Ask Question
+  const handleAskQuestion = async (question: string) => {
+    if (!selectedDocumentId) {
+      showToast("Please select a document first", "error");
+      return;
+    }
+
+    setIsLoadingQA(true);
+    try {
+      const response = await searchDocument(question, selectedDocumentId);
+
+      const savedQA: QAItem = response.qna || {
+        id: `qa-${Date.now()}`,
+        documentId: selectedDocumentId,
+        documentName:
+          documents.find((d) => d._id === selectedDocumentId)?.filename ||
+          "Document",
+        question,
+        answer: response.res?.answer || "No response generated.",
+        insufficientContext: response.res?.insufficientContext || false,
+        rawChunks: response.rawChunks || [],
+        timings: response.timings,
+        createdAt: new Date().toISOString(),
+      };
+
+      setHistory((prev) => [savedQA, ...prev]);
+      setSelectedQAId(savedQA._id || savedQA.id || null);
+      setIsNewChat(false);
+    } catch (err: unknown) {
+      console.error("Search failed:", err);
+      const msg =
+        err instanceof Error ? err.message : "Failed to query document";
+      showToast(msg, "error");
+    } finally {
+      setIsLoadingQA(false);
+    }
+  };
+
+  const handleNewChat = () => {
+    setSelectedQAId(null);
+    setIsNewChat(true);
+  };
+
+  const selectedDocument = useMemo(() => {
+    if (!selectedDocumentId) return documents[0] || null;
+    return documents.find((d) => d._id === selectedDocumentId) || null;
+  }, [documents, selectedDocumentId]);
+
+  const currentQA = useMemo(() => {
+    if (!selectedQAId) return null;
+    return history.find((h) => (h._id || h.id) === selectedQAId) || null;
+  }, [history, selectedQAId]);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="flex h-screen w-screen overflow-hidden bg-white text-[#0d0d0d] font-sans selection:bg-neutral-200 selection:text-black">
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-xl border text-xs shadow-lg backdrop-blur-md animate-in fade-in slide-in-from-top-4 duration-200 bg-white/95 border-[#e5e7eb] text-[#0d0d0d]">
+          {toast.type === "success" ? (
+            <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+          ) : (
+            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+          )}
+          <span className="font-medium">{toast.message}</span>
+        </div>
+      )}
+
+      {/* 1. FIXED LEFT SIDEBAR */}
+      <div
+        className={`h-full shrink-0 z-30 ${
+          mobileView === "nav"
+            ? "fixed inset-y-0 left-0 flex shadow-xl"
+            : "hidden md:flex"
+        }`}
+      >
+        <LeftSidebar
+          activeNav={activeNav}
+          onSelectNav={(key) => {
+            setActiveNav(key);
+            setMobileView("main");
+          }}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      </div>
+
+      {/* Mobile Backdrop for Left Sidebar */}
+      {mobileView === "nav" && (
+        <div
+          className="fixed inset-0 bg-black/40 z-20 md:hidden"
+          onClick={() => setMobileView("main")}
+        />
+      )}
+
+      {/* 2. CENTER MAIN WORKSPACE */}
+      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative">
+        {/* Mobile Header Bar */}
+        <div className="md:hidden flex items-center justify-between px-3 py-2.5 border-b border-[#e5e7eb] bg-white">
+          <button
+            onClick={() => setMobileView("nav")}
+            className="p-1.5 rounded-lg border border-neutral-200 text-neutral-600 hover:bg-neutral-100"
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <Menu className="w-4 h-4" />
+          </button>
+          <div className="flex items-center gap-2 text-xs font-semibold text-neutral-800">
+            <span>
+              {activeNav === "doc-query"
+                ? "Project Documentation Query"
+                : "Github related query (Developers)"}
+            </span>
+          </div>
+          {activeNav === "doc-query" ? (
+            <button
+              onClick={() =>
+                setMobileView(mobileView === "right" ? "main" : "right")
+              }
+              className="p-1.5 rounded-lg border border-neutral-200 text-neutral-600 hover:bg-neutral-100 text-xs flex items-center gap-1"
+            >
+              <Layers className="w-4 h-4" />
+            </button>
+          ) : (
+            <div className="w-8" />
+          )}
         </div>
-      </main>
+
+        {/* Dynamic Center Page Content */}
+        {activeNav === "doc-query" ? (
+          <ChatSection
+            selectedDocument={selectedDocument}
+            history={history}
+            currentQA={currentQA}
+            isNewChat={isNewChat}
+            onAskQuestion={handleAskQuestion}
+            onNewQuestion={handleNewChat}
+            isLoading={isLoadingQA}
+            isInitialLoading={isInitialLoading}
+          />
+        ) : (
+          <GithubQueryPlaceholder />
+        )}
+      </div>
+
+      {/* 3. RIGHT SIDEBAR WITH TAB-BASED INTERFACE (Documents & Previous Chats) */}
+      {/* ONLY FOR FIRST TAB: "Project Documentation Query" */}
+      {activeNav === "doc-query" && (
+        <div
+          className={`w-84 shrink-0 h-full min-w-0 max-w-[21.5rem] overflow-hidden z-20 ${
+            mobileView === "right"
+              ? "fixed inset-y-0 right-0 flex shadow-xl"
+              : "hidden md:flex"
+          }`}
+        >
+          <RightSidebar
+            activeTab={rightTab}
+            onChangeTab={setRightTab}
+            // Documents tab props
+            documents={documents}
+            selectedDocumentId={selectedDocumentId}
+            onSelectDocument={(id) => {
+              setSelectedDocumentId(id);
+              setSelectedQAId(null);
+              setIsNewChat(true);
+              setMobileView("main");
+            }}
+            onUploadFile={handleUploadFile}
+            isUploading={isUploading}
+            isLoadingDocs={isInitialLoading || isRefreshing}
+            // Previous Chats tab props
+            history={history}
+            selectedQAId={selectedQAId}
+            onSelectQA={(qa) => {
+              setSelectedQAId(qa._id || qa.id || null);
+              setIsNewChat(false);
+              if (qa.documentId) {
+                setSelectedDocumentId(qa.documentId);
+              }
+              setActiveNav("doc-query");
+              setMobileView("main");
+            }}
+            isLoadingHistory={isInitialLoading || isRefreshing}
+          />
+        </div>
+      )}
+
+      {/* Mobile Backdrop for Right Sidebar */}
+      {mobileView === "right" && activeNav === "doc-query" && (
+        <div
+          className="fixed inset-0 bg-black/40 z-10 md:hidden"
+          onClick={() => setMobileView("main")}
+        />
+      )}
     </div>
   );
 }
