@@ -6,16 +6,19 @@ import {
   fetchDocuments,
   uploadDocument,
   searchDocument,
+  searchRepository,
   fetchQnas,
+  fetchRepositoryQnas,
   fetchGithubStatus,
   disconnectGithub,
   getGithubLoginUrl,
   fetchGithubRepositories,
+  ingestGithubRepository,
 } from '../lib/api';
 import { LeftSidebar, NavItemKey } from '../components/LeftSidebar';
 import { RightSidebar, RightSidebarTab } from '../components/RightSidebar';
 import { ChatSection } from '../components/ChatSection';
-import { GithubWorkspace } from '../components/GithubWorkspace';
+import { GithubWorkspace, GithubWorkspaceTab } from '../components/GithubWorkspace';
 import { GithubRepoSidebar } from '../components/GithubRepoSidebar';
 import { AlertCircle, CheckCircle, Layers, Menu } from 'lucide-react';
 
@@ -49,6 +52,13 @@ export default function Home() {
   const [githubRepos, setGithubRepos] = useState<GithubRepo[]>([]);
   const [isLoadingRepos, setIsLoadingRepos] = useState(false);
   const [selectedRepo, setSelectedRepo] = useState<GithubRepo | null>(null);
+  const [githubQA, setGithubQA] = useState<QAItem | null>(null);
+  const [githubHistory, setGithubHistory] = useState<QAItem[]>([]);
+  const [selectedGithubQnaId, setSelectedGithubQnaId] = useState<string | null>(null);
+  const [isLoadingGithubHistory, setIsLoadingGithubHistory] = useState(false);
+  const [githubWorkspaceTab, setGithubWorkspaceTab] = useState<GithubWorkspaceTab>('query');
+  const [isNewGithubChat, setIsNewGithubChat] = useState(true);
+  const [isLoadingGithubQA, setIsLoadingGithubQA] = useState(false);
 
   const showToast = useCallback(
     (message: string, type: 'success' | 'error' = 'success') => {
@@ -65,7 +75,7 @@ export default function Home() {
       setGithubRepos(repos);
       if (repos.length > 0) {
         setSelectedRepo((prev) =>
-          prev && repos.some((r) => r.name === prev.name) ? prev : repos[0],
+          prev ? repos.find((repo) => repo.name === prev.name) ?? repos[0] : repos[0],
         );
       } else {
         setSelectedRepo(null);
@@ -74,6 +84,17 @@ export default function Home() {
       console.error('Failed to load GitHub repositories:', err);
     } finally {
       setIsLoadingRepos(false);
+    }
+  }, []);
+
+  const loadGithubHistory = useCallback(async () => {
+    setIsLoadingGithubHistory(true);
+    try {
+      setGithubHistory(await fetchRepositoryQnas());
+    } catch (err) {
+      console.error('Failed to load repository chat history:', err);
+    } finally {
+      setIsLoadingGithubHistory(false);
     }
   }, []);
 
@@ -91,6 +112,12 @@ export default function Home() {
       console.error('Failed to fetch GitHub status:', err);
     }
   }, [loadGithubRepos]);
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      void loadGithubHistory();
+    });
+  }, [loadGithubHistory]);
 
   // Handle GitHub OAuth redirect parameters in URL
   useEffect(() => {
@@ -128,6 +155,10 @@ export default function Home() {
       setGithubUser(null);
       setGithubRepos([]);
       setSelectedRepo(null);
+      setGithubQA(null);
+      setSelectedGithubQnaId(null);
+      setGithubWorkspaceTab('query');
+      setIsNewGithubChat(true);
       showToast('GitHub account disconnected', 'success');
     } catch (err: unknown) {
       showToast(
@@ -286,6 +317,76 @@ export default function Home() {
     setIsNewChat(true);
   };
 
+  const handleAskGithubQuestion = async (question: string) => {
+    if (!selectedRepo) {
+      showToast('Please select a repository first', 'error');
+      return;
+    }
+
+    setIsLoadingGithubQA(true);
+    try {
+      const response = await searchRepository(question, selectedRepo.name);
+      const savedQA: QAItem = response.qna || {
+        id: `github-qa-${Date.now()}`,
+        repoName: selectedRepo.name,
+        documentName: selectedRepo.full_name,
+        question,
+        answer: response.res?.answer || 'No response generated.',
+        insufficientContext: response.res?.insufficientContext || false,
+        rawChunks: response.rawChunks || [],
+        timings: response.timings,
+        createdAt: new Date().toISOString(),
+      };
+      setGithubQA(savedQA);
+      const savedId = savedQA._id || savedQA.id || null;
+      setSelectedGithubQnaId(savedId);
+      setGithubHistory((prev) => [
+        savedQA,
+        ...prev.filter((item) => (item._id || item.id) !== savedId),
+      ]);
+      setIsNewGithubChat(false);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to query repository';
+      showToast(message, 'error');
+    } finally {
+      setIsLoadingGithubQA(false);
+    }
+  };
+
+  const handleNewGithubQuestion = () => {
+    setGithubQA(null);
+    setSelectedGithubQnaId(null);
+    setIsNewGithubChat(true);
+  };
+
+  const handleSelectGithubQna = (qna: QAItem) => {
+    setGithubQA(qna);
+    setSelectedGithubQnaId(qna._id || qna.id || null);
+    setIsNewGithubChat(false);
+    setGithubWorkspaceTab('query');
+    if (qna.repoName) {
+      const matchingRepo = githubRepos.find((repo) => repo.name === qna.repoName);
+      setSelectedRepo(matchingRepo ?? null);
+    }
+    setMobileView('main');
+  };
+
+  const handleIngestGithubRepository = async (repo: GithubRepo) => {
+    try {
+      const result = await ingestGithubRepository(repo.name);
+      await loadGithubRepos();
+      showToast(
+        `Indexed ${repo.full_name}: ${result.totalFiles} files and ${result.totalChunks} code chunks.`,
+        'success',
+      );
+    } catch (err: unknown) {
+      showToast(
+        err instanceof Error ? err.message : `Failed to ingest ${repo.full_name}`,
+        'error',
+      );
+    }
+  };
+
   const selectedDocument = useMemo(() => {
     if (!selectedDocumentId) return documents[0] || null;
     return documents.find((d) => d._id === selectedDocumentId) || null;
@@ -385,6 +486,14 @@ export default function Home() {
             onDisconnectGithub={handleDisconnectGithub}
             selectedRepo={selectedRepo}
             reposCount={githubRepos.length}
+            currentQA={githubQA}
+            isNewChat={isNewGithubChat}
+            isLoadingQA={isLoadingGithubQA}
+            onAskQuestion={handleAskGithubQuestion}
+            onNewQuestion={handleNewGithubQuestion}
+            onIngestRepository={handleIngestGithubRepository}
+            activeTab={githubWorkspaceTab}
+            onChangeTab={setGithubWorkspaceTab}
           />
         )}
       </div>
@@ -446,11 +555,19 @@ export default function Home() {
             selectedRepoName={selectedRepo?.name ?? null}
             onSelectRepo={(repo) => {
               setSelectedRepo(repo);
+              setGithubQA(null);
+              setSelectedGithubQnaId(null);
+              setIsNewGithubChat(true);
               setMobileView('main');
             }}
             onRefresh={loadGithubRepos}
             isConnected={!!githubUser}
             onConnectGithub={handleConnectGithub}
+            onIngestRepository={handleIngestGithubRepository}
+            history={githubHistory}
+            selectedQnaId={selectedGithubQnaId}
+            onSelectQna={handleSelectGithubQna}
+            isLoadingHistory={isLoadingGithubHistory}
           />
         </div>
       )}

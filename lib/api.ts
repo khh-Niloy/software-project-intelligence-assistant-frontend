@@ -71,7 +71,7 @@ export async function uploadDocument(file: File): Promise<UploadResponse> {
   const formData = new FormData();
   formData.append('file', file);
 
-  const res = await fetch(`${API_BASE}/document/upload`, {
+  const res = await fetch(`${API_BASE}/ingest/doc`, {
     method: 'POST',
     body: formData,
   });
@@ -95,11 +95,45 @@ export async function uploadDocument(file: File): Promise<UploadResponse> {
   return extractData<UploadResponse>(json);
 }
 
+export async function ingestGithubRepository(repoName: string) {
+  const res = await fetch(`${API_BASE}/ingest/repo`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ repoName }),
+  });
+
+  if (!res.ok) {
+    let errorMsg = `Repository ingestion failed (${res.status} ${res.statusText})`;
+    try {
+      const errJson = await res.json();
+      if (errJson.message) {
+        errorMsg = Array.isArray(errJson.message)
+          ? errJson.message.join(', ')
+          : errJson.message;
+      }
+    } catch {
+      // ignore
+    }
+    throw new Error(errorMsg);
+  }
+
+  const json = await res.json();
+  return extractData<{
+    repoName: string;
+    owner: string;
+    branch: string;
+    totalFiles: number;
+    totalChunks: number;
+  }>(json);
+}
+
 export async function searchDocument(
   query: string,
   documentId?: string,
 ): Promise<SearchResponse> {
-  const res = await fetch(`${API_BASE}/chat/query`, {
+  const res = await fetch(`${API_BASE}/retrieve/doc`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -127,6 +161,34 @@ export async function searchDocument(
 
   const json = await res.json();
   return extractData<SearchResponse>(json);
+}
+
+export async function searchRepository(
+  query: string,
+  repoName: string,
+): Promise<SearchResponse> {
+  const res = await fetch(`${API_BASE}/retrieve/repo`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, repoName }),
+  });
+
+  if (!res.ok) {
+    let errorMsg = `Repository query failed (${res.status} ${res.statusText})`;
+    try {
+      const errJson = await res.json();
+      if (errJson.message) {
+        errorMsg = Array.isArray(errJson.message)
+          ? errJson.message.join(', ')
+          : errJson.message;
+      }
+    } catch {
+      // ignore
+    }
+    throw new Error(errorMsg);
+  }
+
+  return extractData<SearchResponse>(await res.json());
 }
 
 export async function fetchQnas(): Promise<QAItem[]> {
@@ -162,8 +224,27 @@ export async function fetchQna(id: string): Promise<QAItem> {
   return extractData<QAItem>(json);
 }
 
+export async function fetchRepositoryQnas(): Promise<QAItem[]> {
+  const res = await fetch(`${API_BASE}/retrieve/repo/qna`, { cache: 'no-store' });
+  if (!res.ok) {
+    let errorMsg = `Failed to load repository chat history (${res.status} ${res.statusText})`;
+    try {
+      const errJson = await res.json();
+      if (errJson.message) {
+        errorMsg = Array.isArray(errJson.message)
+          ? errJson.message.join(', ')
+          : errJson.message;
+      }
+    } catch {
+      // ignore
+    }
+    throw new Error(errorMsg);
+  }
+  return extractData<QAItem[]>(await res.json()) ?? [];
+}
+
 export async function fetchGithubStatus(): Promise<GithubStatusResponse> {
-  const res = await fetch(`${API_BASE}/api/github/status`, {
+  const res = await fetch(`${API_BASE}/github/status`, {
     cache: 'no-store',
   });
   if (!res.ok) {
@@ -174,7 +255,7 @@ export async function fetchGithubStatus(): Promise<GithubStatusResponse> {
 }
 
 export async function disconnectGithub(): Promise<{ message: string }> {
-  const res = await fetch(`${API_BASE}/api/github/disconnect`, {
+  const res = await fetch(`${API_BASE}/github/disconnect`, {
     method: 'POST',
   });
   if (!res.ok) {
@@ -185,11 +266,11 @@ export async function disconnectGithub(): Promise<{ message: string }> {
 }
 
 export function getGithubLoginUrl(): string {
-  return `${API_BASE}/api/github/login`;
+  return `${API_BASE}/github/login`;
 }
 
 export async function fetchGithubRepositories(): Promise<GithubRepo[]> {
-  const res = await fetch(`${API_BASE}/api/github/repos`, {
+  const res = await fetch(`${API_BASE}/github/repos`, {
     cache: 'no-store',
   });
   if (!res.ok) {
@@ -218,7 +299,7 @@ export async function fetchRepositoryTree(
   const params = new URLSearchParams({ owner, repo });
   if (branch) params.append('branch', branch);
 
-  const res = await fetch(`${API_BASE}/api/github/tree?${params.toString()}`, {
+  const res = await fetch(`${API_BASE}/github/tree?${params.toString()}`, {
     cache: 'no-store',
   });
 
@@ -250,7 +331,7 @@ export async function fetchRepositoryContent(
   if (branch) params.append('branch', branch);
 
   const res = await fetch(
-    `${API_BASE}/api/github/content?${params.toString()}`,
+    `${API_BASE}/github/content?${params.toString()}`,
     {
       cache: 'no-store',
     },
