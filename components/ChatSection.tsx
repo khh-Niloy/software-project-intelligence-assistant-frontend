@@ -28,6 +28,9 @@ interface ChatSectionProps {
   onNewQuestion: () => void;
   isLoading: boolean;
   isInitialLoading?: boolean;
+  contextType?: 'document' | 'repository';
+  contextName?: string;
+  contextReady?: boolean;
 }
 
 export const ChatSection: React.FC<ChatSectionProps> = ({
@@ -38,6 +41,9 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
   onNewQuestion,
   isLoading,
   isInitialLoading = false,
+  contextType = 'document',
+  contextName,
+  contextReady,
 }) => {
   const [inputQuestion, setInputQuestion] = useState('');
   const [pendingQuestion, setPendingQuestion] = useState<string | null>(null);
@@ -150,19 +156,30 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
     );
   };
 
+  const activeContextName = contextName ?? selectedDocument?.filename;
+  const hasActiveContext = contextReady ?? Boolean(selectedDocument);
+
   const starterQuestions = useMemo(() => {
-    if (!selectedDocument) {
+    if (!hasActiveContext || !activeContextName) {
       return [];
     }
 
-    const docName = selectedDocument.filename || 'this document';
+    const docName = activeContextName || 'this source';
+
+    if (contextType === 'repository') {
+      return [
+        `What is the purpose and structure of ${docName}?`,
+        'Summarize the main modules and how they work together.',
+        'Where is the main application logic implemented?',
+      ];
+    }
 
     return [
       `What is the main topic of ${docName}?`,
       'Summarize the key points and findings in bullet format.',
       'What policies, terms, or actions are specified in this document?',
     ];
-  }, [selectedDocument]);
+  }, [activeContextName, contextType, hasActiveContext]);
 
   const qaKey =
     currentQA?._id || currentQA?.id || currentQA?.timestamp || 'qa-active';
@@ -176,8 +193,8 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
 
   return (
     <div className="flex flex-col h-full bg-white relative font-sans">
-      {/* Top Banner: Selected Document Indicator */}
-      <div className="px-5 py-3 border-b border-[#e5e7eb] bg-white flex items-center justify-between shrink-0 z-10">
+      {/* Top Banner: Selected Context Indicator */}
+      {contextType !== 'repository' && <div className="px-5 py-3 border-b border-[#e5e7eb] bg-white flex items-center justify-between shrink-0 z-10">
         <div className="flex items-center gap-3">
           <span className="text-[11px] font-semibold uppercase tracking-wider text-[#737373]">
             UPLOADED DOC
@@ -199,12 +216,10 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
                     <span
                       className="truncate max-w-[200px] sm:max-w-xs md:max-w-md"
                       title={
-                        selectedDocument ? selectedDocument.filename : undefined
+                        activeContextName
                       }
                     >
-                      {selectedDocument
-                        ? selectedDocument.filename
-                        : 'No document selected'}
+                      {activeContextName ?? 'No document selected'}
                     </span>
                     {selectedDocument?.fileUrl && (
                       <a
@@ -218,7 +233,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
                       </a>
                     )}
                   </p>
-                  {selectedDocument && (
+                  {selectedDocument ? (
                     <p className="text-[10px] text-[#737373] flex items-center gap-1.5">
                       <span className="capitalize font-medium text-emerald-700">
                         {selectedDocument.status}
@@ -228,20 +243,20 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
                         {selectedDocument.totalChunks || 0} Chunks Indexed
                       </span>
                     </p>
-                  )}
+                  ) : null}
                 </>
               )}
             </div>
           </div>
         </div>
 
-        {selectedDocument?.status === 'processing' && (
+        {contextType === 'document' && selectedDocument?.status === 'processing' && (
           <div className="flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full animate-pulse">
             <Loader2 className="w-3 h-3 animate-spin text-amber-600" />
             <span>Embedding chunks...</span>
           </div>
         )}
-      </div>
+      </div>}
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
@@ -261,16 +276,20 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
             <h3 className="text-2xl font-semibold text-[#0d0d0d] tracking-tight mb-2">
               {isInitialLoading
                 ? 'Loading workspace...'
-                : selectedDocument
+                : hasActiveContext
                   ? "What's on the agenda today?"
-                  : 'Select a document to begin'}
+                  : contextType === 'repository' ? 'Select a repository to begin' : 'Select a document to begin'}
             </h3>
             <p className="text-xs text-[#737373] leading-relaxed mb-8 max-w-md break-words [overflow-wrap:anywhere]">
               {isInitialLoading
                 ? 'Retrieving documents and indexed knowledge base...'
-                : selectedDocument
-                  ? `Ask questions about ${selectedDocument.filename} to extract insights, summarize sections, and query semantic vector embeddings.`
-                  : 'Choose a document from the right sidebar to start asking questions.'}
+                : hasActiveContext
+                  ? contextType === 'repository'
+                    ? `Ask questions about ${activeContextName}. Answers use code chunks indexed from this repository.`
+                    : `Ask questions about ${activeContextName} to extract insights, summarize sections, and query semantic vector embeddings.`
+                  : contextType === 'repository'
+                    ? 'Choose a repository from the right sidebar to start asking questions.'
+                    : 'Choose a document from the right sidebar to start asking questions.'}
             </p>
 
             {isInitialLoading ? (
@@ -484,8 +503,10 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
                             className="bg-[#f9f9f9] border border-[#e5e7eb] rounded-xl p-2.5 text-[11px]"
                           >
                             <div className="flex items-center justify-between text-[10px] text-[#737373] mb-1 font-mono">
-                              <span className="font-semibold text-[#525252]">
-                                Source #{cIdx + 1}
+                              <span className="font-semibold text-[#525252] truncate">
+                                {typeof chunk.metadata?.filePath === 'string'
+                                  ? `${chunk.metadata.filePath}${typeof chunk.metadata.startLine === 'number' ? `:${chunk.metadata.startLine}` : ''}`
+                                  : `Source #${cIdx + 1}`}
                               </span>
                               <span className="text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-1 py-0.2 rounded font-medium">
                                 Vector Score:{' '}
@@ -522,7 +543,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
             <span>New Question</span>
           </button>
           <p className="text-[10px] text-center text-[#8e8e8e] mt-2">
-            Responses are grounded on vector chunks retrieved from MongoDB Atlas.
+            Responses are grounded on retrieved {contextType === 'repository' ? 'repository code' : 'document'} chunks.
           </p>
         </div>
       ) : (
@@ -536,13 +557,13 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
                 type="text"
                 value={inputQuestion}
                 onChange={(e) => setInputQuestion(e.target.value)}
-                disabled={isLoading || isInitialLoading || !selectedDocument}
+                disabled={isLoading || isInitialLoading || !hasActiveContext}
                 placeholder={
                   isInitialLoading
                     ? 'Loading workspace documents...'
-                    : selectedDocument
-                      ? 'ask question about this document...'
-                      : 'Select a document to ask questions...'
+                    : hasActiveContext
+                      ? contextType === 'repository' ? 'Ask a question about this repository...' : 'ask question about this document...'
+                      : contextType === 'repository' ? 'Select a repository to ask questions...' : 'Select a document to ask questions...'
                 }
                 className="flex-1 min-w-0 bg-transparent py-3.5 pl-2 pr-2 text-xs text-[#0d0d0d] placeholder-[#8e8e8e] focus:outline-hidden disabled:opacity-60 disabled:cursor-not-allowed"
               />
@@ -552,7 +573,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
                 <button
                   type="submit"
                   disabled={
-                    !inputQuestion.trim() || isLoading || !selectedDocument
+                    !inputQuestion.trim() || isLoading || !hasActiveContext
                   }
                   className="w-8 h-8 rounded-full bg-[#0d0d0d] hover:bg-neutral-800 disabled:bg-[#e5e5e5] text-white disabled:text-[#a3a3a3] flex items-center justify-center transition-all cursor-pointer disabled:cursor-not-allowed shadow-2xs shrink-0"
                 >
@@ -566,7 +587,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
             </div>
           </form>
           <p className="text-[10px] text-center text-[#8e8e8e] mt-2">
-            Responses are grounded on vector chunks retrieved from MongoDB Atlas.
+            Responses are grounded on retrieved {contextType === 'repository' ? 'repository code' : 'document'} chunks.
           </p>
         </div>
       )}

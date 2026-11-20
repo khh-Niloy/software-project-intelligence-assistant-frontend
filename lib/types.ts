@@ -45,6 +45,7 @@ export interface QAItem {
   id?: string;
   documentId?: string | null;
   documentName?: string;
+  repoName?: string;
   question: string;
   answer: string;
   insufficientContext: boolean;
@@ -96,6 +97,7 @@ export interface GithubRepo {
   forks_count: number;
   open_issues_count: number;
   updated_at: string;
+  isIngested: boolean;
 }
 
 export interface TreeItem {
