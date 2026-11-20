@@ -1,22 +1,27 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { DocumentItem, QAItem } from "../lib/types";
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { DocumentItem, QAItem, GithubUser, GithubRepo } from '../lib/types';
 import {
   fetchDocuments,
   uploadDocument,
   searchDocument,
   fetchQnas,
-} from "../lib/api";
-import { LeftSidebar, NavItemKey } from "../components/LeftSidebar";
-import { RightSidebar, RightSidebarTab } from "../components/RightSidebar";
-import { ChatSection } from "../components/ChatSection";
-import { GithubQueryPlaceholder } from "../components/GithubQueryPlaceholder";
-import { AlertCircle, CheckCircle, Layers, Menu } from "lucide-react";
+  fetchGithubStatus,
+  disconnectGithub,
+  getGithubLoginUrl,
+  fetchGithubRepositories,
+} from '../lib/api';
+import { LeftSidebar, NavItemKey } from '../components/LeftSidebar';
+import { RightSidebar, RightSidebarTab } from '../components/RightSidebar';
+import { ChatSection } from '../components/ChatSection';
+import { GithubWorkspace } from '../components/GithubWorkspace';
+import { GithubRepoSidebar } from '../components/GithubRepoSidebar';
+import { AlertCircle, CheckCircle, Layers, Menu } from 'lucide-react';
 
 export default function Home() {
-  const [activeNav, setActiveNav] = useState<NavItemKey>("doc-query");
-  const [rightTab, setRightTab] = useState<RightSidebarTab>("documents");
+  const [activeNav, setActiveNav] = useState<NavItemKey>('doc-query');
+  const [rightTab, setRightTab] = useState<RightSidebarTab>('documents');
 
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(
@@ -31,21 +36,108 @@ export default function Home() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
-  const [mobileView, setMobileView] = useState<"nav" | "main" | "right">(
-    "main",
+  const [mobileView, setMobileView] = useState<'nav' | 'main' | 'right'>(
+    'main',
   );
   const [toast, setToast] = useState<{
     message: string;
-    type: "success" | "error";
+    type: 'success' | 'error';
   } | null>(null);
 
+  const [githubUser, setGithubUser] = useState<GithubUser | null>(null);
+  const [isGithubLoading, setIsGithubLoading] = useState(false);
+  const [githubRepos, setGithubRepos] = useState<GithubRepo[]>([]);
+  const [isLoadingRepos, setIsLoadingRepos] = useState(false);
+  const [selectedRepo, setSelectedRepo] = useState<GithubRepo | null>(null);
+
   const showToast = useCallback(
-    (message: string, type: "success" | "error" = "success") => {
+    (message: string, type: 'success' | 'error' = 'success') => {
       setToast({ message, type });
       setTimeout(() => setToast(null), 4000);
     },
     [],
   );
+
+  const loadGithubRepos = useCallback(async () => {
+    setIsLoadingRepos(true);
+    try {
+      const repos = await fetchGithubRepositories();
+      setGithubRepos(repos);
+      if (repos.length > 0) {
+        setSelectedRepo((prev) =>
+          prev && repos.some((r) => r.name === prev.name) ? prev : repos[0],
+        );
+      } else {
+        setSelectedRepo(null);
+      }
+    } catch (err) {
+      console.error('Failed to load GitHub repositories:', err);
+    } finally {
+      setIsLoadingRepos(false);
+    }
+  }, []);
+
+  const loadGithubStatus = useCallback(async () => {
+    try {
+      const status = await fetchGithubStatus();
+      setGithubUser(status.connected ? status.user : null);
+      if (status.connected) {
+        loadGithubRepos();
+      } else {
+        setGithubRepos([]);
+        setSelectedRepo(null);
+      }
+    } catch (err) {
+      console.error('Failed to fetch GitHub status:', err);
+    }
+  }, [loadGithubRepos]);
+
+  // Handle GitHub OAuth redirect parameters in URL
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const ghStatus = params.get('github');
+    if (ghStatus === 'connected') {
+      const user = params.get('user');
+      window.history.replaceState({}, '', window.location.pathname);
+      queueMicrotask(() => {
+        showToast(
+          `GitHub account linked successfully! ${user ? `@${user}` : ''}`,
+          'success',
+        );
+        void loadGithubStatus();
+      });
+    } else if (ghStatus === 'error') {
+      const message = params.get('message') || 'GitHub connection failed';
+      window.history.replaceState({}, '', window.location.pathname);
+      queueMicrotask(() => {
+        showToast(message, 'error');
+      });
+    }
+  }, [showToast, loadGithubStatus]);
+
+  const handleConnectGithub = () => {
+    setIsGithubLoading(true);
+    window.location.href = getGithubLoginUrl();
+  };
+
+  const handleDisconnectGithub = async () => {
+    setIsGithubLoading(true);
+    try {
+      await disconnectGithub();
+      setGithubUser(null);
+      setGithubRepos([]);
+      setSelectedRepo(null);
+      showToast('GitHub account disconnected', 'success');
+    } catch (err: unknown) {
+      showToast(
+        err instanceof Error ? err.message : 'Failed to disconnect GitHub',
+        'error',
+      );
+    } finally {
+      setIsGithubLoading(false);
+    }
+  };
 
   // Load Documents from Backend
   const loadDocuments = useCallback(
@@ -61,13 +153,13 @@ export default function Home() {
           });
         }
       } catch (err: unknown) {
-        console.error("Failed to load documents:", err);
+        console.error('Failed to load documents:', err);
         if (!quiet) {
           const msg =
             err instanceof Error
               ? err.message
-              : "Cannot connect to backend server on port 5000";
-          showToast(msg, "error");
+              : 'Cannot connect to backend server on port 5000';
+          showToast(msg, 'error');
         }
       } finally {
         if (!quiet) setIsRefreshing(false);
@@ -79,11 +171,15 @@ export default function Home() {
   // Initial load
   useEffect(() => {
     let active = true;
-    Promise.all([fetchDocuments(), fetchQnas()])
-      .then(([docs, qnas]) => {
+    Promise.all([fetchDocuments(), fetchQnas(), fetchGithubStatus()])
+      .then(([docs, qnas, ghStatus]) => {
         if (active) {
           setDocuments(docs);
           setHistory(qnas);
+          if (ghStatus?.connected) {
+            setGithubUser(ghStatus.user);
+            void loadGithubRepos();
+          }
           if (docs.length > 0) {
             setSelectedDocumentId((prev) => prev ?? docs[0]._id);
           }
@@ -91,7 +187,7 @@ export default function Home() {
       })
       .catch((err: unknown) => {
         if (active) {
-          console.error("Initial load failed:", err);
+          console.error('Initial load failed:', err);
         }
       })
       .finally(() => {
@@ -103,12 +199,12 @@ export default function Home() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [loadGithubRepos]);
 
   // Auto-poll if any document is currently pending or processing
   const hasProcessingDocs = useMemo(() => {
     return documents.some(
-      (d) => d.status === "pending" || d.status === "processing",
+      (d) => d.status === 'pending' || d.status === 'processing',
     );
   }, [documents]);
 
@@ -129,7 +225,7 @@ export default function Home() {
       const res = await uploadDocument(file);
       showToast(
         `Uploaded "${file.name}" successfully! Indexed with vector embeddings.`,
-        "success",
+        'success',
       );
       // Reload documents and auto-select uploaded doc
       await loadDocuments(true);
@@ -139,9 +235,9 @@ export default function Home() {
       }
       return res;
     } catch (err: unknown) {
-      console.error("Upload failed:", err);
-      const msg = err instanceof Error ? err.message : "Upload failed";
-      showToast(msg, "error");
+      console.error('Upload failed:', err);
+      const msg = err instanceof Error ? err.message : 'Upload failed';
+      showToast(msg, 'error');
     } finally {
       setIsUploading(false);
     }
@@ -150,7 +246,7 @@ export default function Home() {
   // Handle Ask Question
   const handleAskQuestion = async (question: string) => {
     if (!selectedDocumentId) {
-      showToast("Please select a document first", "error");
+      showToast('Please select a document first', 'error');
       return;
     }
 
@@ -163,9 +259,9 @@ export default function Home() {
         documentId: selectedDocumentId,
         documentName:
           documents.find((d) => d._id === selectedDocumentId)?.filename ||
-          "Document",
+          'Document',
         question,
-        answer: response.res?.answer || "No response generated.",
+        answer: response.res?.answer || 'No response generated.',
         insufficientContext: response.res?.insufficientContext || false,
         rawChunks: response.rawChunks || [],
         timings: response.timings,
@@ -176,10 +272,10 @@ export default function Home() {
       setSelectedQAId(savedQA._id || savedQA.id || null);
       setIsNewChat(false);
     } catch (err: unknown) {
-      console.error("Search failed:", err);
+      console.error('Search failed:', err);
       const msg =
-        err instanceof Error ? err.message : "Failed to query document";
-      showToast(msg, "error");
+        err instanceof Error ? err.message : 'Failed to query document';
+      showToast(msg, 'error');
     } finally {
       setIsLoadingQA(false);
     }
@@ -205,7 +301,7 @@ export default function Home() {
       {/* Toast Notification */}
       {toast && (
         <div className="fixed top-4 right-4 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-xl border text-xs shadow-lg backdrop-blur-md animate-in fade-in slide-in-from-top-4 duration-200 bg-white/95 border-[#e5e7eb] text-[#0d0d0d]">
-          {toast.type === "success" ? (
+          {toast.type === 'success' ? (
             <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
           ) : (
             <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
@@ -217,25 +313,28 @@ export default function Home() {
       {/* 1. FIXED LEFT SIDEBAR */}
       <div
         className={`h-full shrink-0 z-30 ${
-          mobileView === "nav"
-            ? "fixed inset-y-0 left-0 flex shadow-xl"
-            : "hidden md:flex"
+          mobileView === 'nav'
+            ? 'fixed inset-y-0 left-0 flex shadow-xl'
+            : 'hidden md:flex'
         }`}
       >
         <LeftSidebar
           activeNav={activeNav}
           onSelectNav={(key) => {
             setActiveNav(key);
-            setMobileView("main");
+            setMobileView('main');
+            if (key === 'github-query' && githubUser && githubRepos.length === 0) {
+              void loadGithubRepos();
+            }
           }}
         />
       </div>
 
       {/* Mobile Backdrop for Left Sidebar */}
-      {mobileView === "nav" && (
+      {mobileView === 'nav' && (
         <div
           className="fixed inset-0 bg-black/40 z-20 md:hidden"
-          onClick={() => setMobileView("main")}
+          onClick={() => setMobileView('main')}
         />
       )}
 
@@ -244,34 +343,30 @@ export default function Home() {
         {/* Mobile Header Bar */}
         <div className="md:hidden flex items-center justify-between px-3 py-2.5 border-b border-[#e5e7eb] bg-white">
           <button
-            onClick={() => setMobileView("nav")}
+            onClick={() => setMobileView('nav')}
             className="p-1.5 rounded-lg border border-neutral-200 text-neutral-600 hover:bg-neutral-100"
           >
             <Menu className="w-4 h-4" />
           </button>
           <div className="flex items-center gap-2 text-xs font-semibold text-neutral-800">
             <span>
-              {activeNav === "doc-query"
-                ? "Project Documentation Query"
-                : "Github related query (Developers)"}
+              {activeNav === 'doc-query'
+                ? 'Project Documentation Query'
+                : 'Github related query (Developers)'}
             </span>
           </div>
-          {activeNav === "doc-query" ? (
-            <button
-              onClick={() =>
-                setMobileView(mobileView === "right" ? "main" : "right")
-              }
-              className="p-1.5 rounded-lg border border-neutral-200 text-neutral-600 hover:bg-neutral-100 text-xs flex items-center gap-1"
-            >
-              <Layers className="w-4 h-4" />
-            </button>
-          ) : (
-            <div className="w-8" />
-          )}
+          <button
+            onClick={() =>
+              setMobileView(mobileView === 'right' ? 'main' : 'right')
+            }
+            className="p-1.5 rounded-lg border border-neutral-200 text-neutral-600 hover:bg-neutral-100 text-xs flex items-center gap-1"
+          >
+            <Layers className="w-4 h-4" />
+          </button>
         </div>
 
         {/* Dynamic Center Page Content */}
-        {activeNav === "doc-query" ? (
+        {activeNav === 'doc-query' ? (
           <ChatSection
             selectedDocument={selectedDocument}
             history={history}
@@ -283,18 +378,25 @@ export default function Home() {
             isInitialLoading={isInitialLoading}
           />
         ) : (
-          <GithubQueryPlaceholder />
+          <GithubWorkspace
+            githubUser={githubUser}
+            isGithubLoading={isGithubLoading}
+            onConnectGithub={handleConnectGithub}
+            onDisconnectGithub={handleDisconnectGithub}
+            selectedRepo={selectedRepo}
+            reposCount={githubRepos.length}
+          />
         )}
       </div>
 
-      {/* 3. RIGHT SIDEBAR WITH TAB-BASED INTERFACE (Documents & Previous Chats) */}
-      {/* ONLY FOR FIRST TAB: "Project Documentation Query" */}
-      {activeNav === "doc-query" && (
+      {/* 3. RIGHT SIDEBAR - CONDITIONAL BASED ON ACTIVE NAV */}
+      {/* 3A. For "Project Documentation Query": Documents & Previous Chats */}
+      {activeNav === 'doc-query' && (
         <div
           className={`w-84 shrink-0 h-full min-w-0 max-w-[21.5rem] overflow-hidden z-20 ${
-            mobileView === "right"
-              ? "fixed inset-y-0 right-0 flex shadow-xl"
-              : "hidden md:flex"
+            mobileView === 'right'
+              ? 'fixed inset-y-0 right-0 flex shadow-xl'
+              : 'hidden md:flex'
           }`}
         >
           <RightSidebar
@@ -307,7 +409,7 @@ export default function Home() {
               setSelectedDocumentId(id);
               setSelectedQAId(null);
               setIsNewChat(true);
-              setMobileView("main");
+              setMobileView('main');
             }}
             onUploadFile={handleUploadFile}
             isUploading={isUploading}
@@ -321,19 +423,43 @@ export default function Home() {
               if (qa.documentId) {
                 setSelectedDocumentId(qa.documentId);
               }
-              setActiveNav("doc-query");
-              setMobileView("main");
+              setActiveNav('doc-query');
+              setMobileView('main');
             }}
             isLoadingHistory={isInitialLoading || isRefreshing}
           />
         </div>
       )}
 
+      {/* 3B. For "Github related query (Developers)": Repositories Sidebar */}
+      {activeNav === 'github-query' && (
+        <div
+          className={`w-84 shrink-0 h-full min-w-0 max-w-[21.5rem] overflow-hidden z-20 ${
+            mobileView === 'right'
+              ? 'fixed inset-y-0 right-0 flex shadow-xl'
+              : 'hidden md:flex'
+          }`}
+        >
+          <GithubRepoSidebar
+            repos={githubRepos}
+            isLoading={isLoadingRepos}
+            selectedRepoName={selectedRepo?.name ?? null}
+            onSelectRepo={(repo) => {
+              setSelectedRepo(repo);
+              setMobileView('main');
+            }}
+            onRefresh={loadGithubRepos}
+            isConnected={!!githubUser}
+            onConnectGithub={handleConnectGithub}
+          />
+        </div>
+      )}
+
       {/* Mobile Backdrop for Right Sidebar */}
-      {mobileView === "right" && activeNav === "doc-query" && (
+      {mobileView === 'right' && (
         <div
           className="fixed inset-0 bg-black/40 z-10 md:hidden"
-          onClick={() => setMobileView("main")}
+          onClick={() => setMobileView('main')}
         />
       )}
     </div>

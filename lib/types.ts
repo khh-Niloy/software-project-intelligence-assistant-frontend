@@ -68,3 +68,57 @@ export interface UploadResponse {
   stats?: DocumentStats;
   totalChunks?: number;
 }
+
+export interface GithubUser {
+  username: string;
+  displayName: string;
+  avatarUrl: string;
+  email: string;
+  scope: string;
+  updatedAt?: string;
+}
+
+export interface GithubStatusResponse {
+  connected: boolean;
+  user: GithubUser | null;
+}
+
+export interface GithubRepo {
+  name: string;
+  full_name: string;
+  private: boolean;
+  owner: string;
+  description: string | null;
+  html_url: string;
+  default_branch: string;
+  language: string | null;
+  stargazers_count: number;
+  forks_count: number;
+  open_issues_count: number;
+  updated_at: string;
+}
+
+export interface TreeItem {
+  path: string;
+  type: 'file' | 'directory' | string;
+  size?: number;
+}
+
+export interface RepositoryTreeResponse {
+  owner: string;
+  repo: string;
+  branch: string;
+  truncated: boolean;
+  total_items: number;
+  tree: TreeItem[];
+}
+
+export interface RepositoryFileContent {
+  type: 'file';
+  name: string;
+  path: string;
+  size: number;
+  sha: string;
+  download_url?: string;
+  content: string;
+}
