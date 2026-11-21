@@ -102,17 +102,17 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full w-full min-w-0 max-w-full bg-[#f9f9f9] border-l border-[#e5e7eb] font-sans overflow-hidden">
+    <aside className="flex flex-col h-full w-full min-w-0 max-w-full bg-white/80 backdrop-blur-2xl rounded-[28px] md:rounded-[32px] border border-white/90 shadow-[0_20px_50px_rgba(115,130,165,0.09)] font-sans overflow-hidden bg-[radial-gradient(ellipse_at_top_right,rgba(255,238,226,0.45),transparent_70%)]">
       {/* Tab Switcher Header */}
-      <div className="p-2.5 border-b border-[#e5e7eb] bg-white shrink-0">
-        <div className="grid grid-cols-2 p-1 bg-[#f0f0f0] rounded-xl text-xs font-medium gap-1">
+      <div className="p-2.5 border-b border-slate-100/70 bg-white/40 shrink-0 flex items-center justify-between gap-2">
+        <div className="grid grid-cols-2 p-1 bg-slate-100/70 backdrop-blur-sm rounded-xl text-xs font-medium gap-1 flex-1">
           {/* Documents Tab Button */}
           <button
             onClick={() => onChangeTab('documents')}
             className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg transition-all cursor-pointer ${
               activeTab === 'documents'
-                ? 'bg-white text-[#0d0d0d] font-semibold shadow-2xs'
-                : 'text-[#666] hover:text-[#0d0d0d]'
+                ? 'bg-white text-slate-900 font-semibold shadow-[0_2px_8px_rgba(115,130,165,0.12)]'
+                : 'text-slate-500 hover:text-slate-900'
             }`}
           >
             <FileText className="w-3.5 h-3.5 shrink-0" />
@@ -120,8 +120,8 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
             <span
               className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full border shrink-0 ${
                 activeTab === 'documents'
-                  ? 'bg-neutral-100 border-neutral-200 text-neutral-700'
-                  : 'bg-white/70 border-neutral-200/60 text-neutral-500'
+                  ? 'bg-slate-100 border-slate-200 text-slate-700'
+                  : 'bg-white/70 border-slate-200/60 text-slate-500'
               }`}
             >
               {documents.length}
@@ -133,8 +133,8 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
             onClick={() => onChangeTab('chats')}
             className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg transition-all cursor-pointer ${
               activeTab === 'chats'
-                ? 'bg-white text-[#0d0d0d] font-semibold shadow-2xs'
-                : 'text-[#666] hover:text-[#0d0d0d]'
+                ? 'bg-white text-slate-900 font-semibold shadow-[0_2px_8px_rgba(115,130,165,0.12)]'
+                : 'text-slate-500 hover:text-slate-900'
             }`}
           >
             <MessageSquare className="w-3.5 h-3.5 shrink-0" />
@@ -142,8 +142,8 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
             <span
               className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full border shrink-0 ${
                 activeTab === 'chats'
-                  ? 'bg-neutral-100 border-neutral-200 text-neutral-700'
-                  : 'bg-white/70 border-neutral-200/60 text-neutral-500'
+                  ? 'bg-slate-100 border-slate-200 text-slate-700'
+                  : 'bg-white/70 border-slate-200/60 text-slate-500'
               }`}
             >
               {history.length}
@@ -176,21 +176,21 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                   fileInputRef.current?.click();
                 }
               }}
-              className={`border border-dashed rounded-xl p-3 text-center cursor-pointer transition-all duration-150 ${
+              className={`border border-dashed rounded-2xl p-3.5 text-center cursor-pointer transition-all duration-150 ${
                 dragActive
-                  ? 'border-[#0d0d0d] bg-neutral-100 ring-2 ring-black/5'
-                  : 'border-[#d4d4d4] hover:border-[#a3a3a3] bg-white hover:bg-[#fbfbfb] shadow-2xs'
+                  ? 'border-slate-800 bg-white ring-2 ring-slate-800/10'
+                  : 'border-slate-200/90 hover:border-slate-400 bg-white/70 hover:bg-white shadow-[0_2px_12px_rgba(120,135,170,0.04)]'
               } ${isUploading ? 'opacity-70 cursor-not-allowed' : ''}`}
             >
               {isUploading ? (
                 <Loader2 className="w-5 h-5 mx-auto text-blue-600 animate-spin mb-1" />
               ) : (
-                <UploadCloud className="w-5 h-5 mx-auto text-[#737373] mb-1" />
+                <UploadCloud className="w-5 h-5 mx-auto text-slate-400 mb-1" />
               )}
-              <p className="text-xs font-medium text-[#171717]">
+              <p className="text-xs font-semibold text-slate-800">
                 {isUploading ? 'Uploading & Queuing...' : 'Drop PDF, DOCX or TXT here'}
               </p>
-              <p className="text-[10px] text-[#737373] mt-0.5">
+              <p className="text-[10px] text-slate-400 mt-0.5">
                 Auto-indexed via Supabase & LangChain
               </p>
             </div>
@@ -199,7 +199,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
           {/* Documents List */}
           <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 pb-3 space-y-2 min-w-0 w-full">
             <div className="pt-1 pb-0.5">
-              <p className="text-[10px] uppercase font-semibold tracking-wider text-[#8e8e8e] px-1">
+              <p className="text-[10px] uppercase font-semibold tracking-wider text-slate-400 px-1">
                 Documents (Click to chat)
               </p>
             </div>
@@ -209,15 +209,15 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 {[1, 2, 3, 4].map((idx) => (
                   <div
                     key={`doc-skeleton-${idx}`}
-                    className="p-3 rounded-xl border border-[#e5e7eb] bg-white animate-pulse shadow-2xs space-y-2 w-full min-w-0 overflow-hidden"
+                    className="p-3 rounded-2xl border border-slate-100 bg-white/60 animate-pulse shadow-xs space-y-2 w-full min-w-0 overflow-hidden"
                   >
                     <div className="flex items-start gap-2.5 min-w-0 w-full">
-                      <div className="w-7 h-7 rounded-lg bg-[#e5e7eb] shrink-0 mt-0.5" />
+                      <div className="w-7 h-7 rounded-lg bg-slate-200 shrink-0 mt-0.5" />
                       <div className="min-w-0 flex-1 space-y-2">
-                        <div className="h-3.5 bg-[#e5e7eb] rounded w-3/4" />
+                        <div className="h-3.5 bg-slate-200 rounded w-3/4" />
                         <div className="flex items-center gap-2">
-                          <div className="h-4 bg-[#f0f0f0] rounded w-16" />
-                          <div className="h-3.5 bg-[#f0f0f0] rounded w-12" />
+                          <div className="h-4 bg-slate-100 rounded w-16" />
+                          <div className="h-3.5 bg-slate-100 rounded w-12" />
                         </div>
                       </div>
                     </div>
@@ -225,7 +225,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 ))}
               </div>
             ) : documents.length === 0 ? (
-              <div className="text-center py-8 text-[#8e8e8e] text-xs">
+              <div className="text-center py-8 text-slate-400 text-xs">
                 No documents uploaded yet.
               </div>
             ) : (
@@ -235,10 +235,10 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                   <div
                     key={doc._id}
                     onClick={() => onSelectDocument(doc._id)}
-                    className={`p-3 rounded-xl border transition-all duration-150 cursor-pointer group relative w-full min-w-0 overflow-hidden ${
+                    className={`p-3 rounded-2xl border transition-all duration-150 cursor-pointer group relative w-full min-w-0 overflow-hidden ${
                       isSelected
-                        ? 'bg-blue-50/80 border-blue-300 shadow-2xs ring-1 ring-blue-400/40'
-                        : 'bg-white border-[#e5e7eb] hover:border-[#d4d4d4] hover:bg-[#fbfbfb] shadow-2xs'
+                        ? 'bg-blue-50/90 border-blue-200/90 shadow-[0_4px_16px_rgba(59,130,246,0.08)] ring-1 ring-blue-300/40'
+                        : 'bg-white/75 border-slate-100/90 hover:border-slate-200 hover:bg-white shadow-[0_2px_10px_rgba(120,135,170,0.04)]'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2 min-w-0 w-full">
@@ -246,8 +246,8 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                         <div
                           className={`w-7 h-7 rounded-lg border flex items-center justify-center shrink-0 mt-0.5 ${
                             isSelected
-                              ? 'bg-blue-100/70 border-blue-200'
-                              : 'bg-neutral-100 border-neutral-200'
+                              ? 'bg-blue-100/70 border-blue-200 text-blue-700'
+                              : 'bg-slate-100/80 border-slate-200/70 text-slate-600'
                           }`}
                         >
                           {getFileIcon(doc.filename)}
@@ -257,7 +257,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                             className={`text-xs font-medium leading-snug break-all [word-break:break-word] [overflow-wrap:anywhere] ${
                               isSelected
                                 ? 'text-blue-950 font-semibold'
-                                : 'text-[#0d0d0d] group-hover:text-black'
+                                : 'text-slate-800 group-hover:text-black'
                             }`}
                             title={doc.filename}
                           >
@@ -278,7 +278,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                               </span>
                             )}
                             {doc.status === 'pending' && (
-                              <span className="inline-flex items-center gap-1 text-[10px] text-neutral-600 bg-neutral-100 border border-neutral-200 px-1.5 py-0.5 rounded font-medium">
+                              <span className="inline-flex items-center gap-1 text-[10px] text-slate-600 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded font-medium">
                                 <Clock className="w-3 h-3" />
                                 <span>Queued</span>
                               </span>
@@ -301,7 +301,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                           rel="noopener noreferrer"
                           onClick={(e) => e.stopPropagation()}
                           title="Open file in Supabase Storage"
-                          className="p-1 text-[#8e8e8e] hover:text-[#0d0d0d] hover:bg-neutral-100 rounded transition-colors shrink-0 cursor-pointer ml-1 mt-0.5"
+                          className="p-1 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded transition-colors shrink-0 cursor-pointer ml-1 mt-0.5"
                         >
                           <ExternalLink className="w-3.5 h-3.5" />
                         </a>
@@ -319,14 +319,14 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
       {activeTab === 'chats' && (
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           {/* Header indicator */}
-          <div className="px-4 py-2.5 border-b border-[#e5e7eb] flex items-center justify-between shrink-0 bg-white/60">
+          <div className="px-4 py-2.5 border-b border-slate-100/70 flex items-center justify-between shrink-0 bg-white/40">
             <div className="flex items-center gap-2">
               <Folder className="w-4 h-4 text-amber-500" />
-              <span className="text-xs font-semibold text-[#0d0d0d]">
+              <span className="text-xs font-semibold text-slate-800">
                 All question and ans
               </span>
             </div>
-            <span className="text-[10px] text-[#737373]">
+            <span className="text-[10px] text-slate-400">
               {history.length} {history.length === 1 ? 'interaction' : 'interactions'}
             </span>
           </div>
@@ -338,29 +338,29 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                 {[1, 2, 3, 4, 5].map((idx) => (
                   <div
                     key={`history-skeleton-${idx}`}
-                    className="w-full p-2.5 rounded-lg border border-[#e5e7eb] bg-white animate-pulse space-y-2 shadow-2xs"
+                    className="w-full p-2.5 rounded-xl border border-slate-100 bg-white/60 animate-pulse space-y-2 shadow-xs"
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <div className="h-3.5 w-20 bg-[#e5e7eb] rounded" />
-                      <div className="h-2.5 w-14 bg-[#f0f0f0] rounded" />
+                      <div className="h-3.5 w-20 bg-slate-200 rounded" />
+                      <div className="h-2.5 w-14 bg-slate-100 rounded" />
                     </div>
-                    <div className="h-3 w-4/5 bg-[#e5e7eb] rounded" />
+                    <div className="h-3 w-4/5 bg-slate-200 rounded" />
                     <div className="space-y-1 pt-0.5">
-                      <div className="h-2.5 w-full bg-[#f5f5f5] rounded" />
-                      <div className="h-2.5 w-3/4 bg-[#f5f5f5] rounded" />
+                      <div className="h-2.5 w-full bg-slate-100 rounded" />
+                      <div className="h-2.5 w-3/4 bg-slate-100 rounded" />
                     </div>
                   </div>
                 ))}
               </div>
             ) : history.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-52 text-center p-4 text-[#8e8e8e]">
-                <div className="w-10 h-10 rounded-xl bg-white border border-[#e5e7eb] flex items-center justify-center mb-2.5 text-[#a3a3a3] shadow-2xs">
+              <div className="flex flex-col items-center justify-center h-52 text-center p-4 text-slate-400">
+                <div className="w-10 h-10 rounded-2xl bg-white border border-slate-200/80 flex items-center justify-center mb-2.5 text-slate-400 shadow-xs">
                   <MessageSquare className="w-4 h-4" />
                 </div>
-                <p className="text-xs font-medium text-[#404040]">
+                <p className="text-xs font-semibold text-slate-700">
                   No previous chats yet
                 </p>
-                <p className="text-[11px] text-[#737373] mt-1 max-w-[190px]">
+                <p className="text-[11px] text-slate-400 mt-1 max-w-[190px]">
                   Ask questions about any uploaded document to see interaction history here.
                 </p>
               </div>
@@ -377,18 +377,18 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                   <div
                     key={itemId}
                     onClick={() => onSelectQA(qa)}
-                    className={`w-full text-left p-2.5 rounded-lg border transition-all duration-150 group relative cursor-pointer ${
+                    className={`w-full text-left p-3 rounded-2xl border transition-all duration-150 group relative cursor-pointer ${
                       isSelected
-                        ? 'bg-blue-50/80 border-blue-300 text-blue-950 shadow-2xs ring-1 ring-blue-400/30'
-                        : 'bg-white hover:bg-[#f3f4f6] border-[#e5e7eb] text-[#262626] shadow-2xs'
+                        ? 'bg-blue-50/90 border-blue-200/90 text-blue-950 shadow-[0_4px_16px_rgba(59,130,246,0.08)] ring-1 ring-blue-300/30'
+                        : 'bg-white/75 hover:bg-white border-slate-100/90 hover:border-slate-200 text-slate-800 shadow-[0_2px_10px_rgba(120,135,170,0.04)]'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-1 mb-1">
                       <span
-                        className={`text-[10px] font-medium px-1.5 py-0.5 rounded border max-w-[130px] truncate shadow-2xs ${
+                        className={`text-[10px] font-medium px-2 py-0.5 rounded-full border max-w-[130px] truncate ${
                           isSelected
                             ? 'bg-blue-100/70 border-blue-200 text-blue-800'
-                            : 'bg-neutral-50 border-[#e5e7eb] text-[#525252]'
+                            : 'bg-slate-100/80 border-slate-200/70 text-slate-600'
                         }`}
                       >
                         {qa.documentName || 'Document'}
@@ -397,7 +397,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                         {dateStr && (
                           <span
                             className={`text-[10px] flex items-center gap-1 font-mono ${
-                              isSelected ? 'text-blue-700/80' : 'text-[#8e8e8e]'
+                              isSelected ? 'text-blue-700/80' : 'text-slate-400'
                             }`}
                             suppressHydrationWarning
                           >
@@ -408,22 +408,22 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                       </div>
                     </div>
 
-                    <p className="text-xs font-medium text-[#0d0d0d] line-clamp-1 leading-snug">
+                    <p className="text-xs font-semibold text-slate-900 line-clamp-1 leading-snug">
                       {qa.question}
                     </p>
 
-                    <p className="text-[11px] text-[#666666] mt-1 line-clamp-2 leading-relaxed">
+                    <p className="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">
                       {qa.answer.replace(/<[^>]*>?/gm, ' ')}
                     </p>
 
                     {qa.timings && (
-                      <div className="mt-1.5 flex items-center gap-1 text-[10px] text-[#737373] font-mono">
+                      <div className="mt-1.5 flex items-center gap-1 text-[10px] text-slate-400 font-mono">
                         <Zap className="w-2.5 h-2.5 text-amber-500" />
                         <span>{qa.timings.totalSeconds}s</span>
                       </div>
                     )}
 
-                    <ArrowUpRight className="w-3 h-3 absolute top-2.5 right-2 text-[#8e8e8e] opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <ArrowUpRight className="w-3 h-3 absolute top-2.5 right-2 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                 );
               })
@@ -431,6 +431,6 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
           </div>
         </div>
       )}
-    </div>
+    </aside>
   );
 };
