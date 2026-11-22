@@ -24,25 +24,19 @@ function extractData<T>(json: unknown): T {
 }
 
 export async function fetchDocuments(): Promise<DocumentItem[]> {
-  const res = await fetch(`${API_BASE}/document`, {
-    cache: 'no-store',
-  });
-  if (!res.ok) {
-    let errorMsg = `Failed to load documents (${res.status} ${res.statusText})`;
-    try {
-      const errJson = await res.json();
-      if (errJson.message) {
-        errorMsg = Array.isArray(errJson.message)
-          ? errJson.message.join(', ')
-          : errJson.message;
-      }
-    } catch {
-      // ignore
+  try {
+    const res = await fetch(`${API_BASE}/document`, {
+      cache: 'no-store',
+    });
+    if (!res.ok) {
+      return [];
     }
-    throw new Error(errorMsg);
+    const json = await res.json();
+    return extractData<DocumentItem[]>(json) ?? [];
+  } catch (err) {
+    console.warn('Backend offline or unreachable when loading documents:', err);
+    return [];
   }
-  const json = await res.json();
-  return extractData<DocumentItem[]>(json) ?? [];
 }
 
 export async function fetchDocument(id: string): Promise<DocumentItem> {
@@ -192,25 +186,19 @@ export async function searchRepository(
 }
 
 export async function fetchQnas(): Promise<QAItem[]> {
-  const res = await fetch(`${API_BASE}/chat/qna`, {
-    cache: 'no-store',
-  });
-  if (!res.ok) {
-    let errorMsg = `Failed to load Q&A history (${res.status} ${res.statusText})`;
-    try {
-      const errJson = await res.json();
-      if (errJson.message) {
-        errorMsg = Array.isArray(errJson.message)
-          ? errJson.message.join(', ')
-          : errJson.message;
-      }
-    } catch {
-      // ignore
+  try {
+    const res = await fetch(`${API_BASE}/chat/qna`, {
+      cache: 'no-store',
+    });
+    if (!res.ok) {
+      return [];
     }
-    throw new Error(errorMsg);
+    const json = await res.json();
+    return extractData<QAItem[]>(json) ?? [];
+  } catch (err) {
+    console.warn('Backend offline or unreachable when loading Q&A history:', err);
+    return [];
   }
-  const json = await res.json();
-  return extractData<QAItem[]>(json) ?? [];
 }
 
 export async function fetchQna(id: string): Promise<QAItem> {
@@ -225,33 +213,32 @@ export async function fetchQna(id: string): Promise<QAItem> {
 }
 
 export async function fetchRepositoryQnas(): Promise<QAItem[]> {
-  const res = await fetch(`${API_BASE}/retrieve/repo/qna`, { cache: 'no-store' });
-  if (!res.ok) {
-    let errorMsg = `Failed to load repository chat history (${res.status} ${res.statusText})`;
-    try {
-      const errJson = await res.json();
-      if (errJson.message) {
-        errorMsg = Array.isArray(errJson.message)
-          ? errJson.message.join(', ')
-          : errJson.message;
-      }
-    } catch {
-      // ignore
+  try {
+    const res = await fetch(`${API_BASE}/retrieve/repo/qna`, { cache: 'no-store' });
+    if (!res.ok) {
+      return [];
     }
-    throw new Error(errorMsg);
+    return extractData<QAItem[]>(await res.json()) ?? [];
+  } catch (err) {
+    console.warn('Backend offline or unreachable when loading repository chat history:', err);
+    return [];
   }
-  return extractData<QAItem[]>(await res.json()) ?? [];
 }
 
 export async function fetchGithubStatus(): Promise<GithubStatusResponse> {
-  const res = await fetch(`${API_BASE}/github/status`, {
-    cache: 'no-store',
-  });
-  if (!res.ok) {
+  try {
+    const res = await fetch(`${API_BASE}/github/status`, {
+      cache: 'no-store',
+    });
+    if (!res.ok) {
+      return { connected: false, user: null };
+    }
+    const json = await res.json();
+    return extractData<GithubStatusResponse>(json) ?? { connected: false, user: null };
+  } catch (err) {
+    console.warn('Backend offline or unreachable when checking GitHub status:', err);
     return { connected: false, user: null };
   }
-  const json = await res.json();
-  return extractData<GithubStatusResponse>(json);
 }
 
 export async function disconnectGithub(): Promise<{ message: string }> {
@@ -270,25 +257,19 @@ export function getGithubLoginUrl(): string {
 }
 
 export async function fetchGithubRepositories(): Promise<GithubRepo[]> {
-  const res = await fetch(`${API_BASE}/github/repos`, {
-    cache: 'no-store',
-  });
-  if (!res.ok) {
-    let errorMsg = `Failed to load repositories (${res.status} ${res.statusText})`;
-    try {
-      const errJson = await res.json();
-      if (errJson.message) {
-        errorMsg = Array.isArray(errJson.message)
-          ? errJson.message.join(', ')
-          : errJson.message;
-      }
-    } catch {
-      // ignore
+  try {
+    const res = await fetch(`${API_BASE}/github/repos`, {
+      cache: 'no-store',
+    });
+    if (!res.ok) {
+      return [];
     }
-    throw new Error(errorMsg);
+    const json = await res.json();
+    return extractData<GithubRepo[]>(json) ?? [];
+  } catch (err) {
+    console.warn('Backend offline or unreachable when loading repositories:', err);
+    return [];
   }
-  const json = await res.json();
-  return extractData<GithubRepo[]>(json) ?? [];
 }
 
 export async function fetchRepositoryTree(

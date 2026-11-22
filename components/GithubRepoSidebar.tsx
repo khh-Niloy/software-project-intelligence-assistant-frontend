@@ -109,61 +109,63 @@ export const GithubRepoSidebar: React.FC<GithubRepoSidebarProps> = ({
   }, [repos, searchQuery]);
 
   return (
-    <aside className="w-full h-full bg-[#fbfbfb] border-l border-[#e5e7eb] flex flex-col font-sans select-none overflow-hidden">
+    <aside className="w-full h-full bg-white/80 backdrop-blur-2xl rounded-[28px] md:rounded-[32px] border border-white/90 shadow-[0_20px_50px_rgba(115,130,165,0.09)] flex flex-col font-sans select-none overflow-hidden bg-[radial-gradient(ellipse_at_top_right,rgba(255,238,226,0.45),transparent_70%)]">
       {/* Top Header */}
-      <div className="h-14 px-4 border-b border-[#e5e7eb] flex items-center justify-between bg-white shrink-0">
+      <div className="h-14 px-4 border-b border-slate-100/70 flex items-center justify-between bg-white/40 shrink-0">
         <div className="flex items-center gap-2 min-w-0">
-          <div className="w-7 h-7 rounded-lg bg-neutral-100 border border-neutral-200 flex items-center justify-center text-neutral-800 shrink-0">
-            <FolderGit2 className="w-4 h-4" />
+          <div className="w-7 h-7 rounded-lg bg-white border border-slate-200/80 flex items-center justify-center text-slate-800 shadow-2xs shrink-0">
+            <FolderGit2 className="w-4 h-4 text-slate-700" />
           </div>
           <div className="flex items-center gap-2 min-w-0">
-            <h2 className="text-xs font-bold text-[#0d0d0d] tracking-tight truncate">
+            <h2 className="text-xs font-bold text-slate-900 tracking-tight truncate">
               Repositories
             </h2>
             {isConnected && (
-              <span className="px-1.5 py-0.5 rounded-full bg-neutral-100 border border-neutral-200 text-neutral-600 text-[10px] font-mono font-medium shrink-0">
+              <span className="px-1.5 py-0.5 rounded-full bg-slate-100 border border-slate-200/80 text-slate-600 text-[10px] font-mono font-medium shrink-0">
                 {repos.length}
               </span>
             )}
           </div>
         </div>
 
-        {/* Refresh button */}
-        {isConnected && (
-          <button
-            type="button"
-            onClick={onRefresh}
-            disabled={isLoading}
-            title="Refresh repositories"
-            className="p-1.5 rounded-lg border border-neutral-200 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 disabled:opacity-50 transition-colors cursor-pointer"
-          >
-            <RefreshCw
-              className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`}
-            />
-          </button>
-        )}
+        {/* Header Actions */}
+        <div className="flex items-center gap-1.5">
+          {isConnected && (
+            <button
+              type="button"
+              onClick={onRefresh}
+              disabled={isLoading}
+              title="Refresh repositories"
+              className="p-1.5 rounded-lg border border-slate-200/80 bg-white/60 text-slate-500 hover:text-slate-900 hover:bg-white disabled:opacity-50 transition-colors cursor-pointer shadow-2xs"
+            >
+              <RefreshCw
+                className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`}
+              />
+            </button>
+          )}
+        </div>
       </div>
 
       {isConnected && (
-        <div className="p-2.5 border-b border-[#e5e7eb] bg-white shrink-0">
-          <div className="grid grid-cols-2 p-1 bg-[#f0f0f0] rounded-xl text-xs font-medium gap-1">
+        <div className="p-2.5 border-b border-slate-100/70 bg-white/35 shrink-0">
+          <div className="grid grid-cols-2 p-1 bg-slate-100/70 rounded-xl text-xs font-medium gap-1">
             <button
               type="button"
               onClick={() => setActiveSidebarTab("repos")}
-              className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg transition-all ${activeSidebarTab === "repos" ? "bg-white text-[#0d0d0d] font-semibold shadow-2xs" : "text-[#666] hover:text-[#0d0d0d]"}`}
+              className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg transition-all cursor-pointer ${activeSidebarTab === "repos" ? "bg-white text-slate-900 font-semibold shadow-2xs" : "text-slate-500 hover:text-slate-900"}`}
             >
               <FolderGit2 className="w-3.5 h-3.5" /> Repositories
-              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full border">
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full border border-slate-200/80">
                 {repos.length}
               </span>
             </button>
             <button
               type="button"
               onClick={() => setActiveSidebarTab("chats")}
-              className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg transition-all ${activeSidebarTab === "chats" ? "bg-white text-[#0d0d0d] font-semibold shadow-2xs" : "text-[#666] hover:text-[#0d0d0d]"}`}
+              className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg transition-all cursor-pointer ${activeSidebarTab === "chats" ? "bg-white text-slate-900 font-semibold shadow-2xs" : "text-slate-500 hover:text-slate-900"}`}
             >
               <MessageSquare className="w-3.5 h-3.5" /> Previous Chats
-              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full border">
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full border border-slate-200/80">
                 {history.length}
               </span>
             </button>
@@ -173,22 +175,22 @@ export const GithubRepoSidebar: React.FC<GithubRepoSidebarProps> = ({
 
       {/* Search Input Bar (when connected and has repos) */}
       {isConnected && activeSidebarTab === "repos" && repos.length > 0 && (
-        <div className="p-3 border-b border-[#e5e7eb] bg-white shrink-0">
+        <div className="p-3 border-b border-slate-100/70 bg-white/35 shrink-0">
           <div className="relative">
-            <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search repositories..."
-              className="w-full pl-8 pr-3 py-1.5 text-xs bg-neutral-50 border border-neutral-200 rounded-lg text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-black focus:border-black transition-all"
+              placeholder="Search repositories…"
+              className="w-full pl-8 pr-3 py-1.5 text-xs bg-white/80 border border-slate-200/80 rounded-xl placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-300/30 transition-all text-slate-800 shadow-2xs"
             />
           </div>
         </div>
       )}
 
       {/* Main Content Area */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-2">
+      <div className="flex-1 overflow-y-auto p-2.5 space-y-1.5">
         {isConnected && activeSidebarTab === "chats" ? (
           isLoadingHistory ? (
             <div className="p-3 text-center text-xs text-neutral-500">
@@ -211,16 +213,16 @@ export const GithubRepoSidebar: React.FC<GithubRepoSidebarProps> = ({
                   key={qnaId}
                   type="button"
                   onClick={() => onSelectQna(qna)}
-                  className={`w-full text-left p-3 rounded-xl border transition-colors ${isSelected ? "bg-blue-50 border-blue-300" : "bg-white border-[#e5e7eb] hover:border-neutral-300"}`}
+                  className={`w-full text-left p-2.5 rounded-xl border transition-all cursor-pointer ${isSelected ? "bg-white border-blue-400/80 shadow-[0_4px_16px_rgba(59,130,246,0.12)] ring-1 ring-blue-400/20" : "bg-white/70 hover:bg-white border-slate-100/90 hover:border-slate-200 shadow-[0_2px_8px_rgba(120,135,170,0.04)]"}`}
                 >
-                  <p className="text-xs font-semibold text-neutral-800 line-clamp-2">
+                  <p className="text-xs font-semibold text-slate-800 line-clamp-1">
                     {qna.question}
                   </p>
-                  <p className="text-[10px] text-blue-700 mt-1 truncate">
+                  <p className="text-[10px] text-blue-600 font-medium mt-0.5 truncate">
                     {qna.repoName || qna.documentName || "Repository"}
                   </p>
                   {qna.createdAt && (
-                    <p className="text-[10px] text-neutral-400 mt-1">
+                    <p className="text-[10px] text-slate-400 mt-0.5">
                       {new Date(qna.createdAt).toLocaleString()}
                     </p>
                   )}
@@ -233,20 +235,20 @@ export const GithubRepoSidebar: React.FC<GithubRepoSidebarProps> = ({
             {/* State 1: Not connected */}
             {!isConnected ? (
               <div className="h-full flex flex-col items-center justify-center p-4 text-center">
-                <div className="w-12 h-12 rounded-2xl bg-neutral-100 border border-neutral-200 flex items-center justify-center text-neutral-500 mb-3">
-                  <FolderGit2 className="w-6 h-6" />
+                <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center justify-center text-slate-600 mb-3">
+                  <FolderGit2 className="w-6 h-6 text-slate-700" />
                 </div>
-                <p className="text-xs font-semibold text-neutral-800">
+                <p className="text-xs font-semibold text-slate-800">
                   GitHub Not Connected
                 </p>
-                <p className="text-[11px] text-neutral-500 mt-1 mb-4 leading-relaxed max-w-[14rem]">
+                <p className="text-[11px] text-slate-500 mt-1 mb-4 leading-relaxed max-w-[14rem]">
                   Connect your GitHub account to inspect your public and private
                   repositories.
                 </p>
                 <button
                   type="button"
                   onClick={onConnectGithub}
-                  className="px-3.5 py-2 rounded-xl bg-[#0d0d0d] hover:bg-neutral-800 text-white text-xs font-semibold shadow-2xs transition-all cursor-pointer flex items-center gap-1.5"
+                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-[0_4px_14px_rgba(37,99,235,0.25)] hover:shadow-[0_6px_18px_rgba(37,99,235,0.32)] transition-all cursor-pointer flex items-center gap-1.5"
                 >
                   <GitBranch className="w-3.5 h-3.5" />
                   <span>Connect GitHub</span>
@@ -254,20 +256,20 @@ export const GithubRepoSidebar: React.FC<GithubRepoSidebarProps> = ({
               </div>
             ) : isLoading && repos.length === 0 ? (
               /* State 2: Loading skeletons */
-              <div className="space-y-2">
-                {[1, 2, 3, 4, 5].map((i) => (
+              <div className="space-y-1.5">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
                   <div
                     key={i}
-                    className="p-3 rounded-xl border border-neutral-200 bg-white animate-pulse space-y-2"
+                    className="p-2.5 rounded-xl border border-slate-100 bg-white/70 animate-pulse space-y-1.5 shadow-2xs"
                   >
                     <div className="flex items-center justify-between">
-                      <div className="h-3.5 bg-neutral-200 rounded w-2/3" />
-                      <div className="h-3.5 bg-neutral-200 rounded w-10" />
+                      <div className="h-3 bg-slate-200 rounded w-2/3" />
+                      <div className="h-3 bg-slate-200 rounded w-10" />
                     </div>
-                    <div className="h-2.5 bg-neutral-100 rounded w-full" />
-                    <div className="flex gap-2">
-                      <div className="h-2.5 bg-neutral-100 rounded w-12" />
-                      <div className="h-2.5 bg-neutral-100 rounded w-12" />
+                    <div className="h-2 bg-slate-100 rounded w-full" />
+                    <div className="flex justify-between items-center pt-0.5">
+                      <div className="h-2 bg-slate-100 rounded w-16" />
+                      <div className="h-3.5 bg-slate-100 rounded w-12" />
                     </div>
                   </div>
                 ))}
@@ -295,20 +297,18 @@ export const GithubRepoSidebar: React.FC<GithubRepoSidebarProps> = ({
                   <div
                     key={repo.full_name}
                     onClick={() => onSelectRepo(repo)}
-                    className={`group relative p-3 rounded-xl border transition-all cursor-pointer text-left ${
+                    className={`group relative p-2.5 rounded-xl border transition-all cursor-pointer text-left ${
                       isSelected
-                        ? "bg-blue-50/50 border-blue-400 shadow-2xs ring-1 ring-blue-400/40"
-                        : "bg-white border-[#e5e7eb] hover:border-neutral-300 hover:shadow-2xs"
+                        ? "bg-white border-blue-400/80 shadow-[0_4px_18px_rgba(59,130,246,0.12)] ring-1 ring-blue-400/20"
+                        : "bg-white/75 hover:bg-white border-slate-100/90 hover:border-slate-200 shadow-[0_2px_8px_rgba(120,135,170,0.04)] hover:shadow-[0_4px_14px_rgba(120,135,170,0.07)]"
                     }`}
                   >
                     {/* Repo header */}
-                    <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center justify-between gap-1.5">
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-semibold text-[#0d0d0d] group-hover:text-blue-600 transition-colors truncate">
-                            {repo.name}
-                          </span>
-                        </div>
+                        <span className="text-xs font-semibold text-slate-900 group-hover:text-blue-600 transition-colors truncate block">
+                          {repo.name}
+                        </span>
                       </div>
 
                       {/* Privacy badge & External Link */}
@@ -316,8 +316,8 @@ export const GithubRepoSidebar: React.FC<GithubRepoSidebarProps> = ({
                         <span
                           className={`inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-mono border ${
                             repo.private
-                              ? "bg-amber-50 text-amber-700 border-amber-200"
-                              : "bg-neutral-50 text-neutral-600 border-neutral-200"
+                              ? "bg-amber-50 text-amber-700 border-amber-200/80"
+                              : "bg-white/80 text-slate-500 border-slate-200/70"
                           }`}
                         >
                           {repo.private ? (
@@ -334,7 +334,7 @@ export const GithubRepoSidebar: React.FC<GithubRepoSidebarProps> = ({
                           rel="noopener noreferrer"
                           onClick={(e) => e.stopPropagation()}
                           title="Open on GitHub"
-                          className="p-1 rounded text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 transition-colors"
+                          className="p-0.5 rounded text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
                         >
                           <ExternalLink className="w-3 h-3" />
                         </a>
@@ -343,19 +343,19 @@ export const GithubRepoSidebar: React.FC<GithubRepoSidebarProps> = ({
 
                     {/* Repo Description */}
                     {repo.description && (
-                      <p className="text-[11px] text-neutral-500 mt-1 line-clamp-2 leading-tight">
+                      <p className="text-[10px] text-slate-500 mt-0.5 line-clamp-1 leading-snug">
                         {repo.description}
                       </p>
                     )}
 
-                    {/* Repo Metadata Footer */}
-                    <div className="mt-2.5 flex items-center justify-between text-[10px] text-neutral-500 font-medium pt-1.5 border-t border-neutral-100">
-                      <div className="flex items-center gap-2.5 truncate">
+                    {/* Repo Metadata & Ingest Action Row */}
+                    <div className="mt-1.5 pt-1.5 border-t border-slate-100/80 flex items-center justify-between gap-2 text-[10px] text-slate-500 font-medium">
+                      <div className="flex items-center gap-2 truncate min-w-0">
                         {/* Language dot */}
                         {repo.language && (
-                          <span className="flex items-center gap-1 truncate">
+                          <span className="flex items-center gap-1 truncate font-medium text-slate-700">
                             <span
-                              className="w-2 h-2 rounded-full shrink-0"
+                              className="w-1.5 h-1.5 rounded-full shrink-0"
                               style={{
                                 backgroundColor: getLanguageColor(
                                   repo.language,
@@ -367,46 +367,47 @@ export const GithubRepoSidebar: React.FC<GithubRepoSidebarProps> = ({
                         )}
 
                         {/* Default branch */}
-                        <span className="flex items-center gap-0.5 font-mono text-neutral-400">
+                        <span className="flex items-center gap-0.5 font-mono text-slate-400 shrink-0">
                           <GitBranch className="w-2.5 h-2.5" />
                           <span>{repo.default_branch || "main"}</span>
                         </span>
+
+                        {/* Stars count */}
+                        {repo.stargazers_count > 0 && (
+                          <span className="flex items-center gap-0.5 text-amber-600 font-mono shrink-0">
+                            <Star className="w-2.5 h-2.5 fill-current" />
+                            <span>{repo.stargazers_count}</span>
+                          </span>
+                        )}
                       </div>
 
-                      {/* Stars count */}
-                      {repo.stargazers_count > 0 && (
-                        <span className="flex items-center gap-0.5 text-amber-600 font-mono">
-                          <Star className="w-2.5 h-2.5 fill-current" />
-                          <span>{repo.stargazers_count}</span>
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="mt-2 flex justify-end">
-                      {repo.isIngested ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-medium">
-                          <Database className="w-3 h-3" /> Ingested
-                        </span>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            void handleIngest(repo);
-                          }}
-                          disabled={ingestingRepoName !== null}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-neutral-900 text-white hover:bg-neutral-700 disabled:opacity-60 text-[10px] font-medium transition-colors cursor-pointer disabled:cursor-wait"
-                        >
-                          {ingestingRepoName === repo.name ? (
-                            <Loader2 className="w-3 h-3 animate-spin" />
-                          ) : (
-                            <Database className="w-3 h-3" />
-                          )}
-                          {ingestingRepoName === repo.name
-                            ? "Ingesting…"
-                            : "Ingest"}
-                        </button>
-                      )}
+                      {/* Ingest Action Button / Ingested status */}
+                      <div className="shrink-0">
+                        {repo.isIngested ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 text-[9px] font-medium">
+                            <Database className="w-2.5 h-2.5" /> Ingested
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              void handleIngest(repo);
+                            }}
+                            disabled={ingestingRepoName !== null}
+                            className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-blue-600 text-white hover:bg-blue-500 disabled:opacity-60 text-[9px] font-semibold shadow-2xs transition-all cursor-pointer disabled:cursor-wait"
+                          >
+                            {ingestingRepoName === repo.name ? (
+                              <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                            ) : (
+                              <Database className="w-2.5 h-2.5" />
+                            )}
+                            {ingestingRepoName === repo.name
+                              ? "Ingesting…"
+                              : "Ingest"}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
@@ -418,7 +419,7 @@ export const GithubRepoSidebar: React.FC<GithubRepoSidebarProps> = ({
 
       {/* Bottom Footer Info */}
       {isConnected && activeSidebarTab === "repos" && repos.length > 0 && (
-        <div className="p-2.5 px-4 border-t border-[#e5e7eb] bg-white text-[10px] text-neutral-400 flex items-center justify-between shrink-0 font-mono">
+        <div className="p-2 px-3.5 border-t border-slate-100/70 bg-white/40 text-[10px] text-slate-400 flex items-center justify-between shrink-0 font-mono">
           <span>{filteredRepos.length} displayed</span>
           <span>Updated realtime</span>
         </div>

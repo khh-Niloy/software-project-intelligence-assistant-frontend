@@ -17,6 +17,10 @@ import {
   ExternalLink,
   Zap,
   Plus,
+  PanelLeftOpen,
+  PanelLeftClose,
+  PanelRightOpen,
+  PanelRightClose,
 } from 'lucide-react';
 
 interface ChatSectionProps {
@@ -31,6 +35,10 @@ interface ChatSectionProps {
   contextType?: 'document' | 'repository';
   contextName?: string;
   contextReady?: boolean;
+  leftSidebarOpen?: boolean;
+  onToggleLeftSidebar?: () => void;
+  rightSidebarOpen?: boolean;
+  onToggleRightSidebar?: () => void;
 }
 
 export const ChatSection: React.FC<ChatSectionProps> = ({
@@ -44,6 +52,10 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
   contextType = 'document',
   contextName,
   contextReady,
+  leftSidebarOpen = true,
+  onToggleLeftSidebar,
+  rightSidebarOpen = true,
+  onToggleRightSidebar,
 }) => {
   const [inputQuestion, setInputQuestion] = useState('');
   const [pendingQuestion, setPendingQuestion] = useState<string | null>(null);
@@ -192,78 +204,109 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
   const showWelcomeView = !showAnswerView && !showLoadingView;
 
   return (
-    <div className="flex flex-col h-full bg-white relative font-sans">
+    <div className="flex flex-col h-full relative font-sans bg-[radial-gradient(ellipse_70%_60%_at_28%_45%,rgba(215,232,255,0.7),transparent_60%),radial-gradient(ellipse_65%_65%_at_86%_32%,rgba(255,238,226,0.7),transparent_55%)]">
       {/* Top Banner: Selected Context Indicator */}
-      {contextType !== 'repository' && <div className="px-5 py-3 border-b border-[#e5e7eb] bg-white flex items-center justify-between shrink-0 z-10">
-        <div className="flex items-center gap-3">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-[#737373]">
-            UPLOADED DOC
-          </span>
-          <div className="h-3.5 w-px bg-[#e5e7eb]" />
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600">
-              <FileText className="w-3.5 h-3.5" />
-            </div>
-            <div className="min-w-0">
-              {isInitialLoading ? (
-                <div className="space-y-1.5 py-0.5">
-                  <div className="h-3.5 w-36 bg-[#e5e7eb] rounded animate-pulse" />
-                  <div className="h-2.5 w-24 bg-[#f0f0f0] rounded animate-pulse" />
-                </div>
-              ) : (
-                <>
-                  <p className="text-xs font-semibold text-[#0d0d0d] flex items-center gap-1.5">
-                    <span
-                      className="truncate max-w-[200px] sm:max-w-xs md:max-w-md"
-                      title={
-                        activeContextName
-                      }
-                    >
-                      {activeContextName ?? 'No document selected'}
-                    </span>
-                    {selectedDocument?.fileUrl && (
-                      <a
-                        href={selectedDocument.fileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[#8e8e8e] hover:text-[#0d0d0d] transition-colors cursor-pointer shrink-0"
-                        title="View file in Supabase"
+      {contextType !== 'repository' && (
+        <div className="px-5 py-3 border-b border-slate-100/70 bg-white/40 backdrop-blur-md flex items-center justify-between shrink-0 z-10">
+          <div className="flex items-center gap-3 min-w-0">
+            {onToggleLeftSidebar && (
+              <button
+                type="button"
+                onClick={onToggleLeftSidebar}
+                title={leftSidebarOpen ? 'Collapse Left Sidebar (Workspaces)' : 'Open Left Sidebar (Workspaces)'}
+                className="p-1.5 rounded-xl border border-slate-200/80 bg-white/80 hover:bg-white text-slate-700 hover:text-slate-900 shadow-[0_2px_8px_rgba(120,135,170,0.06)] hover:shadow-xs transition-all cursor-pointer shrink-0"
+              >
+                {leftSidebarOpen ? (
+                  <PanelLeftClose className="w-4 h-4" />
+                ) : (
+                  <PanelLeftOpen className="w-4 h-4" />
+                )}
+              </button>
+            )}
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 shrink-0">
+              UPLOADED DOC
+            </span>
+            <div className="h-3.5 w-px bg-slate-200/70 shrink-0" />
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-6 h-6 rounded-lg bg-blue-50 border border-blue-200/80 flex items-center justify-center text-blue-600 shrink-0">
+                <FileText className="w-3.5 h-3.5" />
+              </div>
+              <div className="min-w-0">
+                {isInitialLoading ? (
+                  <div className="space-y-1.5 py-0.5">
+                    <div className="h-3.5 w-36 bg-slate-200 rounded animate-pulse" />
+                    <div className="h-2.5 w-24 bg-slate-100 rounded animate-pulse" />
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-xs font-semibold text-slate-900 flex items-center gap-1.5">
+                      <span
+                        className="truncate max-w-[200px] sm:max-w-xs md:max-w-md"
+                        title={activeContextName}
                       >
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    )}
-                  </p>
-                  {selectedDocument ? (
-                    <p className="text-[10px] text-[#737373] flex items-center gap-1.5">
-                      <span className="capitalize font-medium text-emerald-700">
-                        {selectedDocument.status}
+                        {activeContextName ?? 'No document selected'}
                       </span>
-                      <span>•</span>
-                      <span>
-                        {selectedDocument.totalChunks || 0} Chunks Indexed
-                      </span>
+                      {selectedDocument?.fileUrl && (
+                        <a
+                          href={selectedDocument.fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-slate-400 hover:text-slate-800 transition-colors cursor-pointer shrink-0"
+                          title="View file in Supabase"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
                     </p>
-                  ) : null}
-                </>
-              )}
+                    {selectedDocument ? (
+                      <p className="text-[10px] text-slate-500 flex items-center gap-1.5">
+                        <span className="capitalize font-medium text-emerald-700">
+                          {selectedDocument.status}
+                        </span>
+                        <span>•</span>
+                        <span>
+                          {selectedDocument.totalChunks || 0} Chunks Indexed
+                        </span>
+                      </p>
+                    ) : null}
+                  </>
+                )}
+              </div>
             </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            {contextType === 'document' && selectedDocument?.status === 'processing' && (
+              <div className="flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full animate-pulse">
+                <Loader2 className="w-3 h-3 animate-spin text-amber-600" />
+                <span>Embedding chunks...</span>
+              </div>
+            )}
+
+            {onToggleRightSidebar && (
+              <button
+                type="button"
+                onClick={onToggleRightSidebar}
+                title={rightSidebarOpen ? 'Collapse Right Sidebar (Documents & Chats)' : 'Open Right Sidebar (Documents & Chats)'}
+                className="p-1.5 rounded-xl border border-slate-200/80 bg-white/80 hover:bg-white text-slate-700 hover:text-slate-900 shadow-[0_2px_8px_rgba(120,135,170,0.06)] hover:shadow-xs transition-all cursor-pointer shrink-0"
+              >
+                {rightSidebarOpen ? (
+                  <PanelRightClose className="w-4 h-4" />
+                ) : (
+                  <PanelRightOpen className="w-4 h-4" />
+                )}
+              </button>
+            )}
           </div>
         </div>
-
-        {contextType === 'document' && selectedDocument?.status === 'processing' && (
-          <div className="flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full animate-pulse">
-            <Loader2 className="w-3 h-3 animate-spin text-amber-600" />
-            <span>Embedding chunks...</span>
-          </div>
-        )}
-      </div>}
+      )}
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
         {/* 1. Welcome View (New Question mode) */}
         {showWelcomeView && (
           <div className="flex flex-col items-center justify-center min-h-[420px] text-center max-w-xl mx-auto py-12">
-            <div className="w-16 h-16 rounded-2xl bg-white border border-[#e5e7eb] shadow-xs flex items-center justify-center mb-5 p-2 transition-transform hover:scale-105 duration-200">
+            <div className="w-16 h-16 rounded-2xl bg-white border border-slate-200/80 shadow-[0_4px_16px_rgba(120,135,170,0.08)] flex items-center justify-center mb-5 p-2 transition-transform hover:scale-105 duration-200">
               <Image
                 src="/logo.png"
                 alt="DevMind Logo"
@@ -273,14 +316,14 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
                 priority
               />
             </div>
-            <h3 className="text-2xl font-semibold text-[#0d0d0d] tracking-tight mb-2">
+            <h3 className="text-2xl md:text-3xl font-extrabold text-[#0c1017] tracking-tight mb-2">
               {isInitialLoading
                 ? 'Loading workspace...'
                 : hasActiveContext
                   ? "What's on the agenda today?"
                   : contextType === 'repository' ? 'Select a repository to begin' : 'Select a document to begin'}
             </h3>
-            <p className="text-xs text-[#737373] leading-relaxed mb-8 max-w-md break-words [overflow-wrap:anywhere]">
+            <p className="text-xs text-slate-500 leading-relaxed mb-8 max-w-md break-words [overflow-wrap:anywhere]">
               {isInitialLoading
                 ? 'Retrieving documents and indexed knowledge base...'
                 : hasActiveContext
@@ -294,31 +337,31 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
 
             {isInitialLoading ? (
               <div className="w-full space-y-2.5 text-left">
-                <div className="h-3 w-32 bg-[#e5e7eb] rounded animate-pulse mb-2 px-1" />
+                <div className="h-3 w-32 bg-slate-200 rounded animate-pulse mb-2 px-1" />
                 {[1, 2, 3].map((idx) => (
                   <div
                     key={`starter-skeleton-${idx}`}
-                    className="w-full bg-[#f9f9f9] border border-[#e5e7eb] p-3.5 rounded-xl animate-pulse shadow-2xs"
+                    className="w-full bg-white/60 border border-slate-100 p-3.5 rounded-2xl animate-pulse shadow-xs"
                   >
-                    <div className="h-3.5 bg-[#e5e7eb] rounded w-2/3" />
+                    <div className="h-3.5 bg-slate-200 rounded w-2/3" />
                   </div>
                 ))}
               </div>
             ) : (
               starterQuestions.length > 0 && (
                 <div className="w-full space-y-2 text-left">
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-[#8e8e8e] mb-2 px-1">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-2 px-1">
                     SUGGESTED QUESTIONS
                   </p>
                   {starterQuestions.map((q, idx) => (
                     <button
                       key={idx}
                       onClick={() => handleSuggestedClick(q)}
-                      className="w-full text-xs text-[#262626] bg-[#f9f9f9] hover:bg-[#f0f0f0] border border-[#e5e7eb] p-3 rounded-xl transition-all duration-150 text-left flex items-center justify-between group shadow-2xs cursor-pointer"
+                      className="w-full text-xs text-slate-700 bg-white/80 hover:bg-white border border-white/90 p-3.5 rounded-2xl transition-all duration-150 text-left flex items-center justify-between group shadow-[0_4px_14px_rgba(120,135,170,0.06)] hover:shadow-[0_8px_20px_rgba(120,135,170,0.10)] cursor-pointer"
                     >
-                      <span className="font-medium text-[#0d0d0d]">{q}</span>
-                      <div className="w-5 h-5 rounded-full bg-white border border-[#e5e7eb] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <ArrowUp className="w-3 h-3 text-[#525252]" />
+                      <span className="font-semibold text-slate-800">{q}</span>
+                      <div className="w-6 h-6 rounded-full bg-slate-100 border border-slate-200/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <ArrowUp className="w-3.5 h-3.5 text-slate-700" />
                       </div>
                     </button>
                   ))}
@@ -333,12 +376,12 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
           <div className="space-y-4 max-w-3xl mx-auto">
             {pendingQuestion && (
               <div className="flex justify-end items-start gap-2.5 pl-12">
-                <div className="bg-[#f4f4f4] text-[#0d0d0d] border border-[#e5e7eb] rounded-2xl rounded-tr-xs px-4 py-3 shadow-2xs max-w-xl text-xs leading-relaxed">
-                  <div className="flex items-center justify-between gap-4 mb-1 border-b border-[#e5e7eb]/80 pb-1">
-                    <span className="text-[10px] font-semibold text-[#525252] uppercase tracking-wider">
+                <div className="bg-slate-800 text-white border border-slate-700/60 rounded-2xl rounded-tr-xs px-4 py-3 shadow-[0_6px_20px_rgba(15,23,42,0.12)] max-w-xl text-xs leading-relaxed">
+                  <div className="flex items-center justify-between gap-4 mb-1 border-b border-white/10 pb-1">
+                    <span className="text-[10px] font-semibold text-slate-300 uppercase tracking-wider">
                       Question
                     </span>
-                    <span className="text-[10px] text-[#8e8e8e]">Just now</span>
+                    <span className="text-[10px] text-slate-400">Just now</span>
                   </div>
                   <p className="font-medium">{pendingQuestion}</p>
                 </div>
@@ -347,7 +390,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
 
             {/* Stepped progress card */}
             <div className="flex items-start gap-3 max-w-2xl pr-12">
-              <div className="w-8 h-8 rounded-full bg-white border border-[#e5e7eb] shadow-2xs flex items-center justify-center shrink-0 p-1">
+              <div className="w-8 h-8 rounded-full bg-white border border-slate-200/80 shadow-xs flex items-center justify-center shrink-0 p-1">
                 <Image
                   src="/logo.png"
                   alt="DevMind"
@@ -356,22 +399,22 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
                   className="object-contain"
                 />
               </div>
-              <div className="bg-white border border-[#e5e7eb] rounded-2xl rounded-tl-xs p-4 shadow-2xs w-full text-xs">
-                <div className="flex items-center justify-between border-b border-[#e5e7eb] pb-2 mb-3">
+              <div className="bg-white/85 backdrop-blur-md border border-white/90 rounded-2xl rounded-tl-xs p-4 shadow-[0_8px_30px_rgba(115,130,165,0.08)] w-full text-xs">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-3">
                   <div className="flex items-center gap-2">
                     <Loader2 className="w-3.5 h-3.5 text-blue-600 animate-spin" />
-                    <span className="font-semibold text-[#0d0d0d]">
+                    <span className="font-semibold text-slate-900">
                       {thinkingSteps[thinkingStepIndex].label}
                     </span>
                   </div>
-                  <span className="font-mono text-[10px] text-[#8e8e8e]">
+                  <span className="font-mono text-[10px] text-slate-400">
                     {thinkingElapsed}s
                   </span>
                 </div>
-                <p className="text-[11px] text-[#737373] mb-3">
+                <p className="text-[11px] text-slate-500 mb-3">
                   {thinkingSteps[thinkingStepIndex].detail}
                 </p>
-                <div className="w-full bg-[#f0f0f0] rounded-full h-1 overflow-hidden">
+                <div className="w-full bg-slate-100 rounded-full h-1 overflow-hidden">
                   <div
                     className="bg-blue-600 h-1 rounded-full transition-all duration-300"
                     style={{
@@ -389,13 +432,13 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
           <div className="space-y-4 max-w-3xl mx-auto">
             {/* User Question */}
             <div className="flex justify-end items-start gap-2.5 pl-12">
-              <div className="bg-[#f4f4f4] text-[#0d0d0d] border border-[#e5e7eb] rounded-2xl rounded-tr-xs px-4 py-3 shadow-2xs max-w-xl text-xs leading-relaxed">
-                <div className="flex items-center justify-between gap-4 mb-1 border-b border-[#e5e7eb]/80 pb-1">
-                  <span className="text-[10px] font-semibold text-[#525252] uppercase tracking-wider">
+              <div className="bg-slate-800 text-white border border-slate-700/60 rounded-2xl rounded-tr-xs px-4 py-3 shadow-[0_6px_20px_rgba(15,23,42,0.12)] max-w-xl text-xs leading-relaxed">
+                <div className="flex items-center justify-between gap-4 mb-1 border-b border-white/10 pb-1">
+                  <span className="text-[10px] font-semibold text-slate-300 uppercase tracking-wider">
                     Question
                   </span>
                   {currentQA.createdAt && (
-                    <span className="text-[10px] text-[#8e8e8e]">
+                    <span className="text-[10px] text-slate-400">
                       {new Date(currentQA.createdAt).toLocaleTimeString([], {
                         hour: '2-digit',
                         minute: '2-digit',
@@ -409,7 +452,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
 
             {/* AI Response */}
             <div className="flex items-start gap-3 max-w-3xl pr-4">
-              <div className="w-8 h-8 rounded-full bg-white border border-[#e5e7eb] shadow-2xs flex items-center justify-center shrink-0 p-1">
+              <div className="w-8 h-8 rounded-full bg-white border border-slate-200/80 shadow-xs flex items-center justify-center shrink-0 p-1">
                 <Image
                   src="/logo.png"
                   alt="DevMind"
@@ -418,10 +461,10 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
                   className="object-contain"
                 />
               </div>
-              <div className="bg-white border border-[#e5e7eb] rounded-2xl rounded-tl-xs p-4 shadow-2xs max-w-2xl text-xs leading-relaxed text-[#0d0d0d] flex-1">
-                <div className="flex items-center justify-between gap-4 mb-2 pb-2 border-b border-[#e5e7eb]">
+              <div className="bg-white/85 backdrop-blur-md border border-white/90 rounded-2xl rounded-tl-xs p-5 shadow-[0_8px_30px_rgba(115,130,165,0.08)] max-w-2xl text-xs leading-relaxed text-slate-800 flex-1">
+                <div className="flex items-center justify-between gap-4 mb-2 pb-2 border-b border-slate-100">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold text-[#0d0d0d] uppercase tracking-wider">
+                    <span className="text-[10px] font-bold text-slate-900 uppercase tracking-wider">
                       Ans
                     </span>
                     {currentQA.insufficientContext && (
@@ -434,7 +477,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
 
                   <button
                     onClick={() => handleCopy(qaKey, currentQA.answer)}
-                    className="p-1 text-[#737373] hover:text-[#0d0d0d] hover:bg-neutral-100 rounded transition-colors flex items-center gap-1 text-[10px] cursor-pointer"
+                    className="p-1 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded transition-colors flex items-center gap-1 text-[10px] cursor-pointer"
                     title="Copy answer"
                   >
                     {copiedId === qaKey ? (
@@ -458,18 +501,18 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
 
                 {/* Performance Timings */}
                 {currentQA.timings && (
-                  <div className="mt-3 pt-3 border-t border-[#f0f0f0] flex flex-wrap items-center gap-1.5 text-[10px] font-mono text-[#737373]">
-                    <span className="px-1.5 py-0.5 rounded-md bg-[#f4f4f4] border border-[#e5e7eb] text-[#0d0d0d] font-semibold flex items-center gap-1">
+                  <div className="mt-3 pt-3 border-t border-slate-100 flex flex-wrap items-center gap-1.5 text-[10px] font-mono text-slate-500">
+                    <span className="px-1.5 py-0.5 rounded-md bg-white border border-slate-200/80 text-slate-900 font-semibold flex items-center gap-1 shadow-2xs">
                       <Zap className="w-2.5 h-2.5 text-amber-500" />
                       {currentQA.timings.totalSeconds}s
                     </span>
-                    <span className="px-1.5 py-0.5 rounded-md bg-[#fafafa] border border-[#e5e7eb]">
+                    <span className="px-1.5 py-0.5 rounded-md bg-white/70 border border-slate-200/60">
                       embed: {currentQA.timings.embeddingSeconds}s
                     </span>
-                    <span className="px-1.5 py-0.5 rounded-md bg-[#fafafa] border border-[#e5e7eb]">
+                    <span className="px-1.5 py-0.5 rounded-md bg-white/70 border border-slate-200/60">
                       vector: {currentQA.timings.vectorSearchSeconds}s
                     </span>
-                    <span className="px-1.5 py-0.5 rounded-md bg-[#fafafa] border border-[#e5e7eb]">
+                    <span className="px-1.5 py-0.5 rounded-md bg-white/70 border border-slate-200/60">
                       gemini: {currentQA.timings.geminiSeconds}s
                     </span>
                   </div>
@@ -482,7 +525,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
                       onClick={() =>
                         setExpandedSourcesId(isSourcesExpanded ? null : qaKey)
                       }
-                      className="flex items-center gap-1.5 text-[11px] font-medium text-[#525252] hover:text-[#0d0d0d] transition-colors cursor-pointer"
+                      className="flex items-center gap-1.5 text-[11px] font-medium text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
                     >
                       <Layers className="w-3 h-3" />
                       <span>
@@ -496,14 +539,14 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
                     </button>
 
                     {isSourcesExpanded && (
-                      <div className="mt-2.5 space-y-2 border-t border-[#e5e7eb] pt-2.5">
+                      <div className="mt-2.5 space-y-2 border-t border-slate-100 pt-2.5">
                         {currentQA.rawChunks?.map((chunk, cIdx) => (
                           <div
                             key={chunk.id || chunk._id || cIdx}
-                            className="bg-[#f9f9f9] border border-[#e5e7eb] rounded-xl p-2.5 text-[11px]"
+                            className="bg-white/80 border border-slate-100 rounded-xl p-2.5 text-[11px]"
                           >
-                            <div className="flex items-center justify-between text-[10px] text-[#737373] mb-1 font-mono">
-                              <span className="font-semibold text-[#525252] truncate">
+                            <div className="flex items-center justify-between text-[10px] text-slate-400 mb-1 font-mono">
+                              <span className="font-semibold text-slate-700 truncate">
                                 {typeof chunk.metadata?.filePath === 'string'
                                   ? `${chunk.metadata.filePath}${typeof chunk.metadata.startLine === 'number' ? `:${chunk.metadata.startLine}` : ''}`
                                   : `Source #${cIdx + 1}`}
@@ -515,7 +558,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
                                     : 'N/A'}
                               </span>
                             </div>
-                            <p className="text-[#374151] leading-relaxed font-sans">
+                            <p className="text-slate-700 leading-relaxed font-sans">
                               {chunk.text}
                             </p>
                           </div>
@@ -534,23 +577,23 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
 
       {/* Bottom Footer Area */}
       {showAnswerView ? (
-        <div className="p-4 border-t border-[#e5e7eb] bg-white flex flex-col items-center justify-center">
+        <div className="p-4 border-t border-slate-100/70 bg-white/40 backdrop-blur-md flex flex-col items-center justify-center">
           <button
             onClick={onNewQuestion}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#0d0d0d] hover:bg-neutral-800 text-white text-xs font-semibold shadow-2xs hover:shadow-xs transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-[0_4px_14px_rgba(37,99,235,0.25)] hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
             <span>New Question</span>
           </button>
-          <p className="text-[10px] text-center text-[#8e8e8e] mt-2">
+          <p className="text-[10px] text-center text-slate-400 mt-2">
             Responses are grounded on retrieved {contextType === 'repository' ? 'repository code' : 'document'} chunks.
           </p>
         </div>
       ) : (
-        <div className="p-4 border-t border-[#e5e7eb] bg-white">
+        <div className="p-4 border-t border-slate-100/70 bg-white/40 backdrop-blur-md">
           <form onSubmit={handleSubmit} className="relative max-w-3xl mx-auto">
-            <div className="flex items-center bg-[#f4f4f4] border border-[#e5e7eb] rounded-full shadow-2xs focus-within:border-blue-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-400/15 transition-all px-2">
-              <div className="pl-2 pr-1 text-[#8e8e8e] shrink-0">
+            <div className="flex items-center bg-white/90 backdrop-blur-xl border border-white/90 rounded-2xl shadow-[0_10px_30px_rgba(115,130,165,0.08)] focus-within:border-blue-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-400/20 transition-all px-3 py-1">
+              <div className="pl-1 pr-2 text-slate-400 shrink-0">
                 <Sparkles className="w-4 h-4" />
               </div>
               <input
@@ -565,17 +608,17 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
                       ? contextType === 'repository' ? 'Ask a question about this repository...' : 'ask question about this document...'
                       : contextType === 'repository' ? 'Select a repository to ask questions...' : 'Select a document to ask questions...'
                 }
-                className="flex-1 min-w-0 bg-transparent py-3.5 pl-2 pr-2 text-xs text-[#0d0d0d] placeholder-[#8e8e8e] focus:outline-hidden disabled:opacity-60 disabled:cursor-not-allowed"
+                className="flex-1 min-w-0 bg-transparent py-3 pl-1 pr-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-hidden disabled:opacity-60 disabled:cursor-not-allowed font-medium"
               />
 
               <div className="flex items-center gap-2 shrink-0 py-1">
-                {/* Submit button - No Reranker */}
+                {/* Submit button - Eye-soothing blue pill */}
                 <button
                   type="submit"
                   disabled={
                     !inputQuestion.trim() || isLoading || !hasActiveContext
                   }
-                  className="w-8 h-8 rounded-full bg-[#0d0d0d] hover:bg-neutral-800 disabled:bg-[#e5e5e5] text-white disabled:text-[#a3a3a3] flex items-center justify-center transition-all cursor-pointer disabled:cursor-not-allowed shadow-2xs shrink-0"
+                  className="w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-200 text-white disabled:text-slate-400 flex items-center justify-center transition-all cursor-pointer disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(37,99,235,0.25)] shrink-0"
                 >
                   {isLoading ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -586,7 +629,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
               </div>
             </div>
           </form>
-          <p className="text-[10px] text-center text-[#8e8e8e] mt-2">
+          <p className="text-[10px] text-center text-slate-400 mt-2">
             Responses are grounded on retrieved {contextType === 'repository' ? 'repository code' : 'document'} chunks.
           </p>
         </div>

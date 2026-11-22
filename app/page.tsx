@@ -59,6 +59,29 @@ export default function Home() {
   const [githubWorkspaceTab, setGithubWorkspaceTab] = useState<GithubWorkspaceTab>('query');
   const [isNewGithubChat, setIsNewGithubChat] = useState(true);
   const [isLoadingGithubQA, setIsLoadingGithubQA] = useState(false);
+  const [showLeftSidebar, setShowLeftSidebar] = useState(true);
+  const [showRightSidebar, setShowRightSidebar] = useState(true);
+  const [showDocLeftSidebar, setShowDocLeftSidebar] = useState(true);
+  const [showDocRightSidebar, setShowDocRightSidebar] = useState(true);
+
+  const isLeftOpen = activeNav === 'doc-query' ? showDocLeftSidebar : showLeftSidebar;
+  const isRightOpen = activeNav === 'doc-query' ? showDocRightSidebar : showRightSidebar;
+
+  const handleToggleLeftSidebar = () => {
+    if (activeNav === 'doc-query') {
+      setShowDocLeftSidebar((prev) => !prev);
+    } else {
+      setShowLeftSidebar((prev) => !prev);
+    }
+  };
+
+  const handleToggleRightSidebar = () => {
+    if (activeNav === 'doc-query') {
+      setShowDocRightSidebar((prev) => !prev);
+    } else {
+      setShowRightSidebar((prev) => !prev);
+    }
+  };
 
   const showToast = useCallback(
     (message: string, type: 'success' | 'error' = 'success') => {
@@ -92,7 +115,7 @@ export default function Home() {
     try {
       setGithubHistory(await fetchRepositoryQnas());
     } catch (err) {
-      console.error('Failed to load repository chat history:', err);
+      console.warn('Failed to load repository chat history:', err);
     } finally {
       setIsLoadingGithubHistory(false);
     }
@@ -109,7 +132,7 @@ export default function Home() {
         setSelectedRepo(null);
       }
     } catch (err) {
-      console.error('Failed to fetch GitHub status:', err);
+      console.warn('Failed to fetch GitHub status:', err);
     }
   }, [loadGithubRepos]);
 
@@ -398,7 +421,7 @@ export default function Home() {
   }, [history, selectedQAId]);
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-white text-[#0d0d0d] font-sans selection:bg-neutral-200 selection:text-black">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#eef2f9] bg-[radial-gradient(ellipse_85%_75%_at_10%_15%,rgba(215,230,255,0.9),transparent_65%),radial-gradient(ellipse_75%_70%_at_90%_22%,rgba(255,238,225,0.85),transparent_60%),radial-gradient(ellipse_80%_65%_at_50%_92%,rgba(235,241,252,0.95),transparent_70%)] text-[#0d0d0d] font-sans selection:bg-neutral-200 selection:text-black p-3 sm:p-4 md:p-4 lg:p-6 gap-3 sm:gap-4 md:gap-4 lg:gap-5 items-center justify-center relative">
       {/* Toast Notification */}
       {toast && (
         <div className="fixed top-4 right-4 z-50 flex items-center gap-2.5 px-4 py-2.5 rounded-xl border text-xs shadow-lg backdrop-blur-md animate-in fade-in slide-in-from-top-4 duration-200 bg-white/95 border-[#e5e7eb] text-[#0d0d0d]">
@@ -411,25 +434,45 @@ export default function Home() {
         </div>
       )}
 
-      {/* 1. FIXED LEFT SIDEBAR */}
-      <div
-        className={`h-full shrink-0 z-30 ${
-          mobileView === 'nav'
-            ? 'fixed inset-y-0 left-0 flex shadow-xl'
-            : 'hidden md:flex'
-        }`}
-      >
-        <LeftSidebar
-          activeNav={activeNav}
-          onSelectNav={(key) => {
-            setActiveNav(key);
-            setMobileView('main');
-            if (key === 'github-query' && githubUser && githubRepos.length === 0) {
-              void loadGithubRepos();
-            }
-          }}
-        />
+      {/* 1. LEFT SIDEBAR SLOT: Preserves space so center never jumps; empty when closed */}
+      <div className="hidden md:flex h-full max-h-[92vh] shrink-0 w-64 lg:w-72 items-center justify-center">
+        <div
+          className={`w-full h-full transition-all duration-300 ${
+            isLeftOpen
+              ? 'opacity-100 scale-100'
+              : 'opacity-0 scale-95 pointer-events-none invisible'
+          }`}
+        >
+          <LeftSidebar
+            activeNav={activeNav}
+            onSelectNav={(key) => {
+              setActiveNav(key);
+              setMobileView('main');
+              if (key === 'github-query' && githubUser && githubRepos.length === 0) {
+                void loadGithubRepos();
+              }
+            }}
+            user={githubUser}
+          />
+        </div>
       </div>
+
+      {/* Mobile Drawer for Left Sidebar */}
+      {mobileView === 'nav' && (
+        <div className="md:hidden fixed inset-y-0 left-0 p-3 flex shadow-xl z-30">
+          <LeftSidebar
+            activeNav={activeNav}
+            onSelectNav={(key) => {
+              setActiveNav(key);
+              setMobileView('main');
+              if (key === 'github-query' && githubUser && githubRepos.length === 0) {
+                void loadGithubRepos();
+              }
+            }}
+            user={githubUser}
+          />
+        </div>
+      )}
 
       {/* Mobile Backdrop for Left Sidebar */}
       {mobileView === 'nav' && (
@@ -439,10 +482,10 @@ export default function Home() {
         />
       )}
 
-      {/* 2. CENTER MAIN WORKSPACE */}
-      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative">
+      {/* 2. CENTER MAIN WORKSPACE TABLET */}
+      <div className="flex-1 flex flex-col h-full max-h-[92vh] min-w-0 max-w-5xl xl:max-w-6xl relative transition-all duration-300">
         {/* Mobile Header Bar */}
-        <div className="md:hidden flex items-center justify-between px-3 py-2.5 border-b border-[#e5e7eb] bg-white">
+        <div className="md:hidden flex items-center justify-between px-3 py-2.5 border-b border-[#e5e7eb] bg-white rounded-t-2xl">
           <button
             onClick={() => setMobileView('nav')}
             className="p-1.5 rounded-lg border border-neutral-200 text-neutral-600 hover:bg-neutral-100"
@@ -468,16 +511,22 @@ export default function Home() {
 
         {/* Dynamic Center Page Content */}
         {activeNav === 'doc-query' ? (
-          <ChatSection
-            selectedDocument={selectedDocument}
-            history={history}
-            currentQA={currentQA}
-            isNewChat={isNewChat}
-            onAskQuestion={handleAskQuestion}
-            onNewQuestion={handleNewChat}
-            isLoading={isLoadingQA}
-            isInitialLoading={isInitialLoading}
-          />
+          <div className="flex-1 flex flex-col h-full min-w-0 bg-white/85 backdrop-blur-2xl rounded-[28px] md:rounded-[34px] border border-white/90 shadow-[0_25px_70px_rgba(115,130,165,0.12)] overflow-hidden">
+            <ChatSection
+              selectedDocument={selectedDocument}
+              history={history}
+              currentQA={currentQA}
+              isNewChat={isNewChat}
+              onAskQuestion={handleAskQuestion}
+              onNewQuestion={handleNewChat}
+              isLoading={isLoadingQA}
+              isInitialLoading={isInitialLoading}
+              leftSidebarOpen={showDocLeftSidebar}
+              onToggleLeftSidebar={handleToggleLeftSidebar}
+              rightSidebarOpen={showDocRightSidebar}
+              onToggleRightSidebar={handleToggleRightSidebar}
+            />
+          </div>
         ) : (
           <GithubWorkspace
             githubUser={githubUser}
@@ -494,65 +543,7 @@ export default function Home() {
             onIngestRepository={handleIngestGithubRepository}
             activeTab={githubWorkspaceTab}
             onChangeTab={setGithubWorkspaceTab}
-          />
-        )}
-      </div>
-
-      {/* 3. RIGHT SIDEBAR - CONDITIONAL BASED ON ACTIVE NAV */}
-      {/* 3A. For "Project Documentation Query": Documents & Previous Chats */}
-      {activeNav === 'doc-query' && (
-        <div
-          className={`w-84 shrink-0 h-full min-w-0 max-w-[21.5rem] overflow-hidden z-20 ${
-            mobileView === 'right'
-              ? 'fixed inset-y-0 right-0 flex shadow-xl'
-              : 'hidden md:flex'
-          }`}
-        >
-          <RightSidebar
-            activeTab={rightTab}
-            onChangeTab={setRightTab}
-            // Documents tab props
-            documents={documents}
-            selectedDocumentId={selectedDocumentId}
-            onSelectDocument={(id) => {
-              setSelectedDocumentId(id);
-              setSelectedQAId(null);
-              setIsNewChat(true);
-              setMobileView('main');
-            }}
-            onUploadFile={handleUploadFile}
-            isUploading={isUploading}
-            isLoadingDocs={isInitialLoading || isRefreshing}
-            // Previous Chats tab props
-            history={history}
-            selectedQAId={selectedQAId}
-            onSelectQA={(qa) => {
-              setSelectedQAId(qa._id || qa.id || null);
-              setIsNewChat(false);
-              if (qa.documentId) {
-                setSelectedDocumentId(qa.documentId);
-              }
-              setActiveNav('doc-query');
-              setMobileView('main');
-            }}
-            isLoadingHistory={isInitialLoading || isRefreshing}
-          />
-        </div>
-      )}
-
-      {/* 3B. For "Github related query (Developers)": Repositories Sidebar */}
-      {activeNav === 'github-query' && (
-        <div
-          className={`w-84 shrink-0 h-full min-w-0 max-w-[21.5rem] overflow-hidden z-20 ${
-            mobileView === 'right'
-              ? 'fixed inset-y-0 right-0 flex shadow-xl'
-              : 'hidden md:flex'
-          }`}
-        >
-          <GithubRepoSidebar
             repos={githubRepos}
-            isLoading={isLoadingRepos}
-            selectedRepoName={selectedRepo?.name ?? null}
             onSelectRepo={(repo) => {
               setSelectedRepo(repo);
               setGithubQA(null);
@@ -560,22 +551,139 @@ export default function Home() {
               setIsNewGithubChat(true);
               setMobileView('main');
             }}
-            onRefresh={loadGithubRepos}
-            isConnected={!!githubUser}
-            onConnectGithub={handleConnectGithub}
-            onIngestRepository={handleIngestGithubRepository}
             history={githubHistory}
             selectedQnaId={selectedGithubQnaId}
             onSelectQna={handleSelectGithubQna}
-            isLoadingHistory={isLoadingGithubHistory}
+            leftSidebarOpen={showLeftSidebar}
+            onToggleLeftSidebar={handleToggleLeftSidebar}
+            rightSidebarOpen={showRightSidebar}
+            onToggleRightSidebar={handleToggleRightSidebar}
           />
+        )}
+      </div>
+
+      {/* 3. RIGHT SIDEBAR SLOT: Preserves space so center never jumps; empty when closed */}
+      <div className="hidden md:flex h-full max-h-[92vh] shrink-0 w-80 lg:w-84 items-center justify-center">
+        <div
+          className={`w-full h-full transition-all duration-300 ${
+            isRightOpen
+              ? 'opacity-100 scale-100'
+              : 'opacity-0 scale-95 pointer-events-none invisible'
+          }`}
+        >
+          {activeNav === 'doc-query' ? (
+            <RightSidebar
+              activeTab={rightTab}
+              onChangeTab={setRightTab}
+              documents={documents}
+              selectedDocumentId={selectedDocumentId}
+              onSelectDocument={(id) => {
+                setSelectedDocumentId(id);
+                setSelectedQAId(null);
+                setIsNewChat(true);
+                setMobileView('main');
+              }}
+              onUploadFile={handleUploadFile}
+              isUploading={isUploading}
+              isLoadingDocs={isInitialLoading || isRefreshing}
+              history={history}
+              selectedQAId={selectedQAId}
+              onSelectQA={(qa) => {
+                setSelectedQAId(qa._id || qa.id || null);
+                setIsNewChat(false);
+                if (qa.documentId) {
+                  setSelectedDocumentId(qa.documentId);
+                }
+                setActiveNav('doc-query');
+                setMobileView('main');
+              }}
+              isLoadingHistory={isInitialLoading || isRefreshing}
+            />
+          ) : (
+            <GithubRepoSidebar
+              repos={githubRepos}
+              isLoading={isLoadingRepos}
+              selectedRepoName={selectedRepo?.name ?? null}
+              onSelectRepo={(repo) => {
+                setSelectedRepo(repo);
+                setGithubQA(null);
+                setSelectedGithubQnaId(null);
+                setIsNewGithubChat(true);
+                setMobileView('main');
+              }}
+              onRefresh={loadGithubRepos}
+              isConnected={!!githubUser}
+              onConnectGithub={handleConnectGithub}
+              onIngestRepository={handleIngestGithubRepository}
+              history={githubHistory}
+              selectedQnaId={selectedGithubQnaId}
+              onSelectQna={handleSelectGithubQna}
+              isLoadingHistory={isLoadingGithubHistory}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Mobile Drawer for Right Sidebar */}
+      {mobileView === 'right' && (
+        <div className="md:hidden fixed inset-y-0 right-0 p-3 flex shadow-xl z-30">
+          {activeNav === 'doc-query' ? (
+            <RightSidebar
+              activeTab={rightTab}
+              onChangeTab={setRightTab}
+              documents={documents}
+              selectedDocumentId={selectedDocumentId}
+              onSelectDocument={(id) => {
+                setSelectedDocumentId(id);
+                setSelectedQAId(null);
+                setIsNewChat(true);
+                setMobileView('main');
+              }}
+              onUploadFile={handleUploadFile}
+              isUploading={isUploading}
+              isLoadingDocs={isInitialLoading || isRefreshing}
+              history={history}
+              selectedQAId={selectedQAId}
+              onSelectQA={(qa) => {
+                setSelectedQAId(qa._id || qa.id || null);
+                setIsNewChat(false);
+                if (qa.documentId) {
+                  setSelectedDocumentId(qa.documentId);
+                }
+                setActiveNav('doc-query');
+                setMobileView('main');
+              }}
+              isLoadingHistory={isInitialLoading || isRefreshing}
+            />
+          ) : (
+            <GithubRepoSidebar
+              repos={githubRepos}
+              isLoading={isLoadingRepos}
+              selectedRepoName={selectedRepo?.name ?? null}
+              onSelectRepo={(repo) => {
+                setSelectedRepo(repo);
+                setGithubQA(null);
+                setSelectedGithubQnaId(null);
+                setIsNewGithubChat(true);
+                setMobileView('main');
+              }}
+              onRefresh={loadGithubRepos}
+              isConnected={!!githubUser}
+              onConnectGithub={handleConnectGithub}
+              onIngestRepository={handleIngestGithubRepository}
+              history={githubHistory}
+              selectedQnaId={selectedGithubQnaId}
+              onSelectQna={handleSelectGithubQna}
+              isLoadingHistory={isLoadingGithubHistory}
+            />
+          )}
         </div>
       )}
 
       {/* Mobile Backdrop for Right Sidebar */}
       {mobileView === 'right' && (
         <div
-          className="fixed inset-0 bg-black/40 z-10 md:hidden"
+          className="fixed inset-0 bg-black/40 z-20 md:hidden"
           onClick={() => setMobileView('main')}
         />
       )}
