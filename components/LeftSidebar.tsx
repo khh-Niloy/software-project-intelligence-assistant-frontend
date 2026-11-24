@@ -2,8 +2,8 @@
 
 import React from 'react';
 import Image from 'next/image';
-import devmindLogo from '@/public/devmind-logo.png';
-import { FileText, GitBranch, ListChecks } from 'lucide-react';
+import Link from 'next/link';
+import { FileText, GitBranch, ListChecks, User, LogIn, UserPlus } from 'lucide-react';
 import { GithubUser } from '../lib/types';
 
 export type NavItemKey = 'doc-query' | 'github-query' | 'traceability';
@@ -145,7 +145,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
       </div>
 
       {/* Bottom Profile / Connected Account */}
-      <div className="p-3 border-t border-slate-100/70 bg-white/40 shrink-0">
+      <div className="p-3 border-t border-slate-100/70 bg-white/40 shrink-0 space-y-2">
         <div className="flex items-center gap-2.5 p-1.5 rounded-xl hover:bg-white/60 transition-colors cursor-pointer">
           {user?.avatarUrl ? (
             /* eslint-disable-next-line @next/next/no-img-element */
@@ -173,6 +173,24 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
               {user ? 'Linked GitHub Account' : 'DevMind Workspace'}
             </p>
           </div>
+        </div>
+
+        {/* Login & Register Buttons */}
+        <div className="grid grid-cols-2 gap-1.5 pt-0.5">
+          <Link
+            href="/login"
+            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-700 bg-white/90 hover:bg-white border border-slate-200/80 hover:border-slate-300 shadow-2xs hover:shadow-xs transition-all text-center cursor-pointer"
+          >
+            <LogIn className="w-3.5 h-3.5 text-slate-500" />
+            <span>Login</span>
+          </Link>
+          <Link
+            href="/register"
+            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 shadow-2xs shadow-blue-500/20 hover:shadow-xs transition-all text-center cursor-pointer"
+          >
+            <UserPlus className="w-3.5 h-3.5" />
+            <span>Register</span>
+          </Link>
         </div>
       </div>
     </aside>

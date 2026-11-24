@@ -2,8 +2,7 @@
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import Image from 'next/image';
-import devmindLogo from '@/public/devmind-logo.png';
-import { RobotMascot } from './GithubWorkspace';
+import Link from 'next/link';
 import { DocumentItem, QAItem } from '../lib/types';
 import {
   ArrowUp,
@@ -284,6 +283,22 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
                 <span>Embedding chunks...</span>
               </div>
             )}
+
+            {/* Quick Auth Navigation */}
+            <div className="hidden sm:flex items-center gap-1.5 mr-1">
+              <Link
+                href="/login"
+                className="px-2.5 py-1.5 rounded-xl border border-slate-200/80 bg-white/80 hover:bg-white text-slate-700 hover:text-slate-900 text-xs font-medium shadow-2xs hover:shadow-xs transition-all cursor-pointer"
+              >
+                Login
+              </Link>
+              <Link
+                href="/register"
+                className="px-2.5 py-1.5 rounded-xl text-white bg-blue-600 hover:bg-blue-700 text-xs font-medium shadow-2xs shadow-blue-500/20 hover:shadow-xs transition-all cursor-pointer"
+              >
+                Register
+              </Link>
+            </div>
 
             {onToggleRightSidebar && (
               <button
