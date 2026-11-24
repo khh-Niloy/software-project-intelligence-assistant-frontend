@@ -7,6 +7,8 @@ import React, {
   useMemo,
   useCallback,
 } from "react";
+import Image from "next/image";
+import devmindLogo from "@/public/devmind-logo.png";
 import { GithubRepo, GithubUser, QAItem } from "../lib/types";
 import { GithubRepoTree } from "./GithubRepoTree";
 import {
@@ -15,7 +17,6 @@ import {
   LogOut,
   Database,
   Loader2,
-  Sparkles,
   Brain,
   Paperclip,
   Send,
@@ -555,8 +556,15 @@ export const GithubWorkspace: React.FC<GithubWorkspaceProps> = ({
               )}
             </button>
           )}
-          <div className="w-6 h-6 rounded-lg bg-slate-900 text-white flex items-center justify-center shadow-xs">
-            <Sparkles className="w-3.5 h-3.5 text-sky-400" />
+          <div className="w-7 h-7 rounded-lg bg-white border border-slate-200/80 shadow-2xs flex items-center justify-center p-0.5 shrink-0 overflow-hidden">
+            <Image
+              src={devmindLogo}
+              alt="DevMind AI"
+              width={28}
+              height={28}
+              className="w-full h-full object-contain"
+              priority
+            />
           </div>
           <span className="text-sm font-bold text-slate-900 tracking-tight">
             DevMind AI
@@ -663,7 +671,7 @@ export const GithubWorkspace: React.FC<GithubWorkspaceProps> = ({
         {/* VIEW 1: Tree Tab */}
         {activeTab === "tree" ? (
           selectedRepo ? (
-            <div className="flex-1 h-full overflow-hidden">
+            <div className="flex-1 h-full overflow-hidden animate-fade-in">
               <GithubRepoTree
                 owner={selectedRepo.owner}
                 repo={selectedRepo.name}
@@ -671,7 +679,7 @@ export const GithubWorkspace: React.FC<GithubWorkspaceProps> = ({
               />
             </div>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-xs text-slate-500">
+            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-xs text-slate-500 animate-fade-in">
               <FolderTree className="w-8 h-8 mb-2 text-slate-300 stroke-1" />
               <p className="font-medium text-slate-700">
                 Select a repository to explore its tree
@@ -683,7 +691,7 @@ export const GithubWorkspace: React.FC<GithubWorkspaceProps> = ({
           )
         ) : showActiveChat ? (
           /* VIEW 2: Active Chat / Answer View */
-          <div className="flex-1 flex flex-col h-full overflow-hidden">
+          <div className="flex-1 flex flex-col h-full overflow-hidden animate-fade-in">
             {/* Active Chat Header */}
             <div className="px-5 py-2.5 border-b border-slate-100 bg-white/40 flex items-center justify-between gap-3 shrink-0">
               <div className="flex items-center gap-2 min-w-0">
@@ -950,7 +958,7 @@ export const GithubWorkspace: React.FC<GithubWorkspaceProps> = ({
           </div>
         ) : (
           /* VIEW 3: Hero Mascot & Action Console View (Exact match to uploaded design!) */
-          <div className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 py-4 sm:py-6 max-w-4xl mx-auto w-full text-center space-y-4">
+          <div className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 py-4 sm:py-6 max-w-4xl mx-auto w-full text-center space-y-4 animate-fade-in">
             {/* Top Section: Left Headline + 3 Cards with Robot peeking behind Card 3 */}
             <div className="w-full max-w-3xl flex flex-col">
               {/* Left Greeting Headline (Sitting directly above Card 1 & Card 2) */}

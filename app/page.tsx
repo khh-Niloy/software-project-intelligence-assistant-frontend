@@ -512,7 +512,7 @@ export default function Home() {
       <div
         className={`flex-1 flex flex-col h-full max-h-[92vh] min-w-0 ${
           activeNav === "traceability" ? "max-w-7xl" : "max-w-5xl xl:max-w-6xl"
-        } relative transition-all duration-300`}
+        } relative transition-all duration-300 ease-in-out`}
       >
         {/* Mobile Header Bar */}
         <div className="md:hidden flex items-center justify-between px-3 py-2.5 border-b border-[#e5e7eb] bg-white rounded-t-2xl">
@@ -545,80 +545,102 @@ export default function Home() {
           )}
         </div>
 
-        {/* Dynamic Center Page Content */}
-        {activeNav === "doc-query" ? (
-          <div className="flex-1 flex flex-col h-full min-w-0 bg-white/85 backdrop-blur-2xl rounded-[28px] md:rounded-[34px] border border-white/90 shadow-[0_25px_70px_rgba(115,130,165,0.12)] overflow-hidden">
-            <ChatSection
-              selectedDocument={selectedDocument}
-              history={history}
-              currentQA={currentQA}
-              isNewChat={isNewChat}
-              onAskQuestion={handleAskQuestion}
-              onNewQuestion={handleNewChat}
-              isLoading={isLoadingQA}
-              isInitialLoading={isInitialLoading}
-              leftSidebarOpen={showDocLeftSidebar}
-              onToggleLeftSidebar={handleToggleLeftSidebar}
-              rightSidebarOpen={showDocRightSidebar}
-              onToggleRightSidebar={handleToggleRightSidebar}
-            />
-          </div>
-        ) : activeNav === "github-query" ? (
-          <GithubWorkspace
-            githubUser={githubUser}
-            isGithubLoading={isGithubLoading}
-            onConnectGithub={handleConnectGithub}
-            onDisconnectGithub={handleDisconnectGithub}
-            selectedRepo={selectedRepo}
-            reposCount={githubRepos.length}
-            currentQA={githubQA}
-            isNewChat={isNewGithubChat}
-            isLoadingQA={isLoadingGithubQA}
-            onAskQuestion={handleAskGithubQuestion}
-            onNewQuestion={handleNewGithubQuestion}
-            onIngestRepository={handleIngestGithubRepository}
-            activeTab={githubWorkspaceTab}
-            onChangeTab={setGithubWorkspaceTab}
-            repos={githubRepos}
-            onSelectRepo={(repo) => {
-              setSelectedRepo(repo);
-              setGithubQA(null);
-              setSelectedGithubQnaId(null);
-              setIsNewGithubChat(true);
-              setMobileView("main");
-            }}
-            history={githubHistory}
-            selectedQnaId={selectedGithubQnaId}
-            onSelectQna={handleSelectGithubQna}
-            leftSidebarOpen={showLeftSidebar}
-            onToggleLeftSidebar={handleToggleLeftSidebar}
-            rightSidebarOpen={showRightSidebar}
-            onToggleRightSidebar={handleToggleRightSidebar}
-          />
-        ) : (
-          <RequirementTraceabilityView
-            documents={documents}
-            repos={githubRepos}
-            onUploadDocument={handleUploadFile}
-            onRefreshRepos={loadGithubRepos}
-            onIngestRepository={handleIngestGithubRepository}
-            onToggleLeftSidebar={handleToggleLeftSidebar}
-            leftSidebarOpen={isLeftOpen}
-          />
-        )}
+        {/* Dynamic Center Page Content with Smooth Transition */}
+        <div className="flex-1 flex flex-col h-full min-w-0 relative">
+          {activeNav === "doc-query" ? (
+            <div
+              key="doc-query"
+              className="flex-1 flex flex-col h-full min-w-0 bg-white/85 backdrop-blur-2xl rounded-[28px] md:rounded-[34px] border border-white/90 shadow-[0_25px_70px_rgba(115,130,165,0.12)] overflow-hidden animate-fade-in"
+            >
+              <ChatSection
+                selectedDocument={selectedDocument}
+                history={history}
+                currentQA={currentQA}
+                isNewChat={isNewChat}
+                onAskQuestion={handleAskQuestion}
+                onNewQuestion={handleNewChat}
+                isLoading={isLoadingQA}
+                isInitialLoading={isInitialLoading}
+                leftSidebarOpen={showDocLeftSidebar}
+                onToggleLeftSidebar={handleToggleLeftSidebar}
+                rightSidebarOpen={showDocRightSidebar}
+                onToggleRightSidebar={handleToggleRightSidebar}
+              />
+            </div>
+          ) : activeNav === "github-query" ? (
+            <div
+              key="github-query"
+              className="flex-1 flex flex-col h-full min-w-0 animate-fade-in"
+            >
+              <GithubWorkspace
+                githubUser={githubUser}
+                isGithubLoading={isGithubLoading}
+                onConnectGithub={handleConnectGithub}
+                onDisconnectGithub={handleDisconnectGithub}
+                selectedRepo={selectedRepo}
+                reposCount={githubRepos.length}
+                currentQA={githubQA}
+                isNewChat={isNewGithubChat}
+                isLoadingQA={isLoadingGithubQA}
+                onAskQuestion={handleAskGithubQuestion}
+                onNewQuestion={handleNewGithubQuestion}
+                onIngestRepository={handleIngestGithubRepository}
+                activeTab={githubWorkspaceTab}
+                onChangeTab={setGithubWorkspaceTab}
+                repos={githubRepos}
+                onSelectRepo={(repo) => {
+                  setSelectedRepo(repo);
+                  setGithubQA(null);
+                  setSelectedGithubQnaId(null);
+                  setIsNewGithubChat(true);
+                  setMobileView("main");
+                }}
+                history={githubHistory}
+                selectedQnaId={selectedGithubQnaId}
+                onSelectQna={handleSelectGithubQna}
+                leftSidebarOpen={showLeftSidebar}
+                onToggleLeftSidebar={handleToggleLeftSidebar}
+                rightSidebarOpen={showRightSidebar}
+                onToggleRightSidebar={handleToggleRightSidebar}
+              />
+            </div>
+          ) : (
+            <div
+              key="traceability"
+              className="flex-1 flex flex-col h-full min-w-0 animate-fade-in"
+            >
+              <RequirementTraceabilityView
+                documents={documents}
+                repos={githubRepos}
+                githubUser={githubUser}
+                onUploadDocument={handleUploadFile}
+                onRefreshRepos={loadGithubRepos}
+                onIngestRepository={handleIngestGithubRepository}
+                onToggleLeftSidebar={handleToggleLeftSidebar}
+                leftSidebarOpen={isLeftOpen}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* 3. RIGHT SIDEBAR SLOT: Preserves space so center never jumps; empty when closed */}
-      {activeNav !== "traceability" && (
-        <div className="hidden md:flex h-full max-h-[92vh] shrink-0 w-80 lg:w-84 items-center justify-center">
-          <div
-            className={`w-full h-full transition-all duration-300 ${
-              isRightOpen
-                ? "opacity-100 scale-100"
-                : "opacity-0 scale-95 pointer-events-none invisible"
-            }`}
-          >
-            {activeNav === "doc-query" ? (
+      {/* 3. RIGHT SIDEBAR SLOT: Preserves space so center never jumps; smoothly collapses for traceability */}
+      <div
+        className={`hidden md:flex h-full max-h-[92vh] shrink-0 items-center justify-center transition-all duration-300 ease-in-out overflow-hidden ${
+          activeNav === "traceability"
+            ? "w-0 opacity-0 pointer-events-none invisible"
+            : "w-80 lg:w-84"
+        }`}
+      >
+        <div
+          className={`w-full h-full transition-all duration-300 ease-in-out ${
+            isRightOpen && activeNav !== "traceability"
+              ? "opacity-100 scale-100"
+              : "opacity-0 scale-95 pointer-events-none invisible"
+          }`}
+        >
+          {activeNav === "doc-query" ? (
+            <div key="doc-sidebar" className="w-full h-full animate-fade-in">
               <RightSidebar
                 activeTab={rightTab}
                 onChangeTab={setRightTab}
@@ -646,7 +668,9 @@ export default function Home() {
                 }}
                 isLoadingHistory={isInitialLoading || isRefreshing}
               />
-            ) : (
+            </div>
+          ) : (
+            <div key="github-sidebar" className="w-full h-full animate-fade-in">
               <GithubRepoSidebar
                 repos={githubRepos}
                 isLoading={isLoadingRepos}
@@ -667,10 +691,10 @@ export default function Home() {
                 onSelectQna={handleSelectGithubQna}
                 isLoadingHistory={isLoadingGithubHistory}
               />
-            )}
-          </div>
+            </div>
+          )}
         </div>
-      )}
+        </div>
 
       {/* Mobile Drawer for Right Sidebar */}
       {mobileView === "right" && activeNav !== "traceability" && (

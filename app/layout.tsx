@@ -6,9 +6,9 @@ export const metadata: Metadata = {
   description:
     'Grounding semantic search and QA on uploaded documents via MongoDB Vector Search and LangChain.',
   icons: {
-    icon: [{ url: '/logo.png', type: 'image/png' }, { url: '/favicon.ico' }],
-    shortcut: '/logo.png',
-    apple: '/logo.png',
+    icon: [{ url: '/devmind-logo.png', type: 'image/png' }, { url: '/favicon.ico' }],
+    shortcut: '/devmind-logo.png',
+    apple: '/devmind-logo.png',
   },
 };
 

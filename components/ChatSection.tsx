@@ -322,23 +322,37 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
       <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
         {/* 1. Welcome View (New Question mode) */}
         {showWelcomeView && (
-          <div className="flex flex-col items-center justify-center min-h-[420px] text-center max-w-xl mx-auto py-12">
-            <div className="w-16 h-16 rounded-2xl bg-white border border-slate-200/80 shadow-[0_4px_16px_rgba(120,135,170,0.08)] flex items-center justify-center mb-5 p-2 transition-transform hover:scale-105 duration-200">
+          <div className="flex flex-col items-center justify-center min-h-[420px] text-center max-w-xl mx-auto py-12 animate-fade-in">
+            <div className="w-16 h-16 rounded-2xl bg-white border border-slate-200/80 shadow-[0_4px_16px_rgba(120,135,170,0.08)] flex items-center justify-center mb-5 p-1.5 transition-transform hover:scale-105 duration-200 overflow-hidden">
               <Image
-                src="/logo.png"
+                src={devmindLogo}
                 alt="DevMind Logo"
-                width={48}
-                height={48}
-                className="object-contain"
+                width={64}
+                height={64}
+                className="w-full h-full object-contain"
                 priority
               />
             </div>
             <h3 className="text-2xl md:text-3xl font-extrabold text-[#0c1017] tracking-tight mb-2">
-              {isInitialLoading
-                ? 'Loading workspace...'
-                : hasActiveContext
-                  ? "What's on the agenda today?"
-                  : contextType === 'repository' ? 'Select a repository to begin' : 'Select a document to begin'}
+              {isInitialLoading ? (
+                'Loading workspace...'
+              ) : hasActiveContext ? (
+                <>
+                  What&apos;s on the agenda{' '}
+                  <span className="relative inline-block">
+                    today
+                    {/* Robot Mascot holding the word "today" without obscuring it */}
+                    <span className="absolute bottom-[18px] sm:bottom-[20px] left-1/2 -translate-x-1/2 pointer-events-none select-none z-10 transform hover:scale-105 transition-transform duration-200">
+                      <RobotMascot size={86} />
+                    </span>
+                  </span>
+                  ?
+                </>
+              ) : contextType === 'repository' ? (
+                'Select a repository to begin'
+              ) : (
+                'Select a document to begin'
+              )}
             </h3>
             <p className="text-xs text-slate-500 leading-relaxed mb-8 max-w-md break-words [overflow-wrap:anywhere]">
               {isInitialLoading
@@ -407,13 +421,13 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
 
             {/* Stepped progress card */}
             <div className="flex items-start gap-3 max-w-2xl pr-12">
-              <div className="w-8 h-8 rounded-full bg-white border border-slate-200/80 shadow-xs flex items-center justify-center shrink-0 p-1">
+              <div className="w-8 h-8 rounded-full bg-white border border-slate-200/80 shadow-xs flex items-center justify-center shrink-0 p-0.5 overflow-hidden">
                 <Image
-                  src="/logo.png"
+                  src={devmindLogo}
                   alt="DevMind"
-                  width={20}
-                  height={20}
-                  className="object-contain"
+                  width={32}
+                  height={32}
+                  className="w-full h-full object-contain"
                 />
               </div>
               <div className="bg-white/85 backdrop-blur-md border border-white/90 rounded-2xl rounded-tl-xs p-4 shadow-[0_8px_30px_rgba(115,130,165,0.08)] w-full text-xs">
@@ -446,7 +460,7 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
 
         {/* 3. Answer View */}
         {showAnswerView && (
-          <div className="space-y-4 max-w-3xl mx-auto">
+          <div className="space-y-4 max-w-3xl mx-auto animate-fade-in">
             {/* User Question */}
             <div className="flex justify-end items-start gap-2.5 pl-12">
               <div className="bg-slate-800 text-white border border-slate-700/60 rounded-2xl rounded-tr-xs px-4 py-3 shadow-[0_6px_20px_rgba(15,23,42,0.12)] max-w-xl text-xs leading-relaxed">
@@ -469,13 +483,13 @@ export const ChatSection: React.FC<ChatSectionProps> = ({
 
             {/* AI Response */}
             <div className="flex items-start gap-3 max-w-3xl pr-4">
-              <div className="w-8 h-8 rounded-full bg-white border border-slate-200/80 shadow-xs flex items-center justify-center shrink-0 p-1">
+              <div className="w-8 h-8 rounded-full bg-white border border-slate-200/80 shadow-xs flex items-center justify-center shrink-0 p-0.5 overflow-hidden">
                 <Image
-                  src="/logo.png"
+                  src={devmindLogo}
                   alt="DevMind"
-                  width={20}
-                  height={20}
-                  className="object-contain"
+                  width={32}
+                  height={32}
+                  className="w-full h-full object-contain"
                 />
               </div>
               <div className="bg-white/85 backdrop-blur-md border border-white/90 rounded-2xl rounded-tl-xs p-5 shadow-[0_8px_30px_rgba(115,130,165,0.08)] max-w-2xl text-xs leading-relaxed text-slate-800 flex-1">
