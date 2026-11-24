@@ -454,3 +454,60 @@ export async function fetchTraceRequirementsByRepo(
     return [];
   }
 }
+
+export async function deleteTraceProject(id: string): Promise<{
+  message: string;
+  deletedRequirements: number;
+}> {
+  const res = await fetch(`${API_BASE}/trace/projects/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+
+  if (!res.ok) {
+    let errorMsg = `Failed to delete project (${res.status} ${res.statusText})`;
+    try {
+      const errJson = await res.json();
+      if (errJson.message) {
+        errorMsg = Array.isArray(errJson.message)
+          ? errJson.message.join(', ')
+          : errJson.message;
+      }
+    } catch {
+      // ignore
+    }
+    throw new Error(errorMsg);
+  }
+
+  return extractData<{ message: string; deletedRequirements: number }>(
+    await res.json(),
+  );
+}
+
+export async function deleteTraceRequirement(id: string): Promise<{
+  message: string;
+  deletedRequirementId: string;
+}> {
+  const res = await fetch(
+    `${API_BASE}/trace/requirements/${encodeURIComponent(id)}`,
+    { method: 'DELETE' },
+  );
+
+  if (!res.ok) {
+    let errorMsg = `Failed to delete requirement (${res.status} ${res.statusText})`;
+    try {
+      const errJson = await res.json();
+      if (errJson.message) {
+        errorMsg = Array.isArray(errJson.message)
+          ? errJson.message.join(', ')
+          : errJson.message;
+      }
+    } catch {
+      // ignore
+    }
+    throw new Error(errorMsg);
+  }
+
+  return extractData<{ message: string; deletedRequirementId: string }>(
+    await res.json(),
+  );
+}

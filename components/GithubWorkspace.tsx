@@ -481,9 +481,8 @@ export const GithubWorkspace: React.FC<GithubWorkspaceProps> = ({
         return;
       }
 
-      if (!selectedRepo && repos.length > 0 && onSelectRepo) {
-        onSelectRepo(repos[0]);
-      }
+      if (!selectedRepo) return;
+      if (!selectedRepo.isIngested) return;
 
       setInputQuestion("");
       setPendingQuestion(q);
@@ -499,8 +498,6 @@ export const GithubWorkspace: React.FC<GithubWorkspaceProps> = ({
       githubUser,
       onConnectGithub,
       selectedRepo,
-      repos,
-      onSelectRepo,
       onAskQuestion,
     ],
   );
@@ -968,12 +965,7 @@ export const GithubWorkspace: React.FC<GithubWorkspaceProps> = ({
               <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-4 pt-16">
                 {/* Card 1: Fast Start */}
                 <div
-                  onClick={() => {
-                    handlePillClick(
-                      "Explain the core modules, syntax patterns, and application architecture.",
-                    );
-                  }}
-                  className="bg-white/90 backdrop-blur-xl border border-white/95 rounded-2xl p-5 shadow-[0_8px_25px_rgba(120,135,170,0.08)] hover:shadow-[0_14px_35px_rgba(120,135,170,0.14)] hover:-translate-y-0.5 transition-all text-left flex flex-col justify-between cursor-pointer group min-h-[200px]"
+                  className="bg-white/90 backdrop-blur-xl border border-white/95 rounded-2xl p-5 shadow-[0_8px_25px_rgba(120,135,170,0.08)] text-left flex flex-col justify-between min-h-[200px]"
                 >
                   <div>
                     {/* Icon: Orange stacked isometric layers */}
@@ -1008,7 +1000,7 @@ export const GithubWorkspace: React.FC<GithubWorkspaceProps> = ({
                         />
                       </svg>
                     </div>
-                    <p className="text-xs font-semibold text-slate-800 leading-snug group-hover:text-blue-600 transition-colors">
+                    <p className="text-xs font-semibold text-slate-800 leading-snug">
                       Index repositories, explore source trees, and analyze
                       commit histories — all in sync.
                     </p>
@@ -1020,12 +1012,7 @@ export const GithubWorkspace: React.FC<GithubWorkspaceProps> = ({
 
                 {/* Card 2: AI Assistant */}
                 <div
-                  onClick={() => {
-                    handlePillClick(
-                      "Identify performance bottlenecks, heavy operations, and optimization opportunities.",
-                    );
-                  }}
-                  className="bg-white/90 backdrop-blur-xl border border-white/95 rounded-2xl p-5 shadow-[0_8px_25px_rgba(120,135,170,0.08)] hover:shadow-[0_14px_35px_rgba(120,135,170,0.14)] hover:-translate-y-0.5 transition-all text-left flex flex-col justify-between cursor-pointer group min-h-[200px]"
+                  className="bg-white/90 backdrop-blur-xl border border-white/95 rounded-2xl p-5 shadow-[0_8px_25px_rgba(120,135,170,0.08)] text-left flex flex-col justify-between min-h-[200px]"
                 >
                   <div>
                     {/* Icon: Slack-style 4-color symbol */}
@@ -1068,7 +1055,7 @@ export const GithubWorkspace: React.FC<GithubWorkspaceProps> = ({
                 </div>
 
                 {/* Card 3: Planning & Docs WITH Robot Mascot mounted on top */}
-                <div className="relative group">
+                <div className="relative">
                   {/* Robot Mascot peaking directly behind Card 3 with hands clutching the top edge */}
                   <div className="absolute -top-[98px] left-1/2 -translate-x-1/2 z-20 pointer-events-none flex flex-col items-center">
                     {/* 3D Robot Mascot SVG */}
@@ -1079,12 +1066,7 @@ export const GithubWorkspace: React.FC<GithubWorkspaceProps> = ({
 
                   {/* Card 3 Body */}
                   <div
-                    onClick={() => {
-                      handlePillClick(
-                        "Summarize project documentation, specifications, and architecture decisions.",
-                      );
-                    }}
-                    className="relative z-10 bg-white/90 backdrop-blur-xl border border-white/95 rounded-2xl p-5 shadow-[0_8px_25px_rgba(120,135,170,0.08)] hover:shadow-[0_14px_35px_rgba(120,135,170,0.14)] hover:-translate-y-0.5 transition-all text-left flex flex-col justify-between cursor-pointer min-h-[200px]"
+                    className="relative z-10 bg-white/90 backdrop-blur-xl border border-white/95 rounded-2xl p-5 shadow-[0_8px_25px_rgba(120,135,170,0.08)] text-left flex flex-col justify-between min-h-[200px]"
                   >
                     <div>
                       {/* Icon: Blue calendar/doc symbol */}
@@ -1135,68 +1117,23 @@ export const GithubWorkspace: React.FC<GithubWorkspaceProps> = ({
               </div>
             </div>
 
-            {/* 3. Highlight Action Banner */}
-            <div className="w-full max-w-2xl bg-white/80 backdrop-blur-md border border-white/90 rounded-2xl p-3 px-4 sm:px-5 flex items-center justify-between gap-4 shadow-[0_6px_22px_rgba(120,135,170,0.08)] text-left">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-7 h-7 rounded-lg bg-amber-50 border border-amber-200/70 flex items-center justify-center text-amber-600 shrink-0">
-                  <Sparkles className="w-4 h-4" />
-                </div>
-                <span className="text-xs sm:text-sm font-semibold text-slate-800 truncate">
-                  {!githubUser
-                    ? "Unlock more with GitHub code intelligence"
-                    : !selectedRepo
-                      ? "Select a repository to query commits & code"
-                      : !selectedRepo.isIngested
-                        ? `Index ${selectedRepo.name} for deep vector context`
-                        : `Active: ${selectedRepo.full_name}`}
-                </span>
-              </div>
-
-              {!githubUser ? (
-                <button
-                  type="button"
-                  onClick={onConnectGithub}
-                  disabled={isGithubLoading}
-                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-[0_4px_14px_rgba(37,99,235,0.25)] hover:shadow-[0_6px_18px_rgba(37,99,235,0.32)] transition-all cursor-pointer shrink-0 flex items-center gap-1.5"
-                >
-                  {isGithubLoading ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : null}
-                  <span>Connect Now</span>
-                </button>
-              ) : !selectedRepo ? (
-                <button
-                  type="button"
-                  onClick={() => onToggleRightSidebar && onToggleRightSidebar()}
-                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-[0_4px_14px_rgba(37,99,235,0.25)] transition-all cursor-pointer shrink-0"
-                >
-                  <span>Select Repo</span>
-                </button>
-              ) : !selectedRepo.isIngested ? (
+            {selectedRepo && !selectedRepo.isIngested && (
+              <div className="w-full max-w-2xl mx-auto mb-2 px-4 py-3 rounded-xl border border-amber-200 bg-amber-50 text-amber-900 flex items-center justify-between gap-3">
+                <p className="text-xs">
+                  This repository has not been ingested. Ingest it first, then
+                  try your query.
+                </p>
                 <button
                   type="button"
                   onClick={() => void handleIngestSelectedRepository()}
                   disabled={isIngesting}
-                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:bg-slate-300 text-white text-xs font-semibold shadow-[0_4px_14px_rgba(37,99,235,0.25)] transition-all cursor-pointer shrink-0 flex items-center gap-1.5"
+                  className="shrink-0 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 disabled:opacity-60 text-white text-xs font-semibold flex items-center gap-1.5"
                 >
-                  {isIngesting ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <Database className="w-3.5 h-3.5" />
-                  )}
-                  <span>{isIngesting ? "Ingesting…" : "Ingest Now"}</span>
+                  {isIngesting && <Loader2 className="w-3 h-3 animate-spin" />}
+                  {isIngesting ? "Ingesting..." : "Ingest repository"}
                 </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => onChangeTab("tree")}
-                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-[0_4px_14px_rgba(37,99,235,0.25)] transition-all cursor-pointer shrink-0 flex items-center gap-1.5"
-                >
-                  <FolderTree className="w-3.5 h-3.5 text-sky-200" />
-                  <span>Browse Tree</span>
-                </button>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* 4. Query Input Console Card - Only Send button as requested */}
             <div className="w-full max-w-2xl bg-white/90 backdrop-blur-xl border border-white/90 rounded-2xl p-2.5 sm:p-3 shadow-[0_10px_35px_rgba(120,135,170,0.10)] focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-400/20 transition-all text-left flex items-center gap-2.5 sm:gap-3">
@@ -1219,7 +1156,11 @@ export const GithubWorkspace: React.FC<GithubWorkspaceProps> = ({
               <button
                 type="button"
                 onClick={() => void handleSubmitQuestion()}
-                disabled={!inputQuestion.trim() || isLoadingQA}
+                disabled={
+                  !inputQuestion.trim() ||
+                  isLoadingQA ||
+                  !selectedRepo?.isIngested
+                }
                 className="w-9 h-9 rounded-full bg-blue-600 hover:bg-blue-500 active:bg-blue-700 disabled:bg-slate-200 text-white disabled:text-slate-400 flex items-center justify-center shadow-[0_4px_14px_rgba(37,99,235,0.28)] transition-all cursor-pointer disabled:cursor-not-allowed shrink-0"
                 title="Send query"
               >
@@ -1229,56 +1170,6 @@ export const GithubWorkspace: React.FC<GithubWorkspaceProps> = ({
                   <Send className="w-4 h-4 ml-0.5" />
                 )}
               </button>
-            </div>
-
-            {/* 5. Suggestion Pills Row (Software Intelligence & Codebase Queries) */}
-            <div className="flex items-center justify-center gap-2 flex-wrap max-w-2xl pt-1">
-              {[
-                {
-                  label: "</> Codebase Overview",
-                  query:
-                    "Explain the core modules, syntax patterns, and application architecture.",
-                },
-                {
-                  label: "⚙️ Architecture Flow",
-                  query:
-                    "What is the end-to-end data flow, module hierarchy, and component relationships?",
-                },
-                {
-                  label: "🛡️ Security & Bugs",
-                  query:
-                    "Audit this repository for security vulnerabilities, memory leaks, and anti-patterns.",
-                },
-                {
-                  label: "📦 Dependencies",
-                  query:
-                    "List and explain key dependencies, package configurations, and runtime requirements.",
-                },
-                {
-                  label: "🧪 Testing Strategy",
-                  query:
-                    "Analyze the test coverage, unit tests, and how to run tests in this repo.",
-                },
-                {
-                  label: "⚡ Performance",
-                  query:
-                    "Identify performance bottlenecks, heavy operations, and optimization opportunities.",
-                },
-                {
-                  label: "🐞 Troubleshoot",
-                  query:
-                    "What are common errors or failure points in this repo and how to fix them?",
-                },
-              ].map((pill, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => handlePillClick(pill.query)}
-                  className="px-3.5 py-1.5 rounded-xl bg-white/80 hover:bg-white border border-white/90 text-slate-600 hover:text-slate-900 text-xs font-medium shadow-[0_4px_14px_rgba(120,135,170,0.06)] hover:shadow-[0_6px_18px_rgba(120,135,170,0.12)] transition-all cursor-pointer active:scale-95"
-                >
-                  {pill.label}
-                </button>
-              ))}
             </div>
           </div>
         )}

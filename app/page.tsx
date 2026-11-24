@@ -356,6 +356,10 @@ export default function Home() {
       showToast("Please select a repository first", "error");
       return;
     }
+    if (!selectedRepo.isIngested) {
+      showToast("Please ingest the selected repository first, then try again.", "error");
+      return;
+    }
 
     setIsLoadingGithubQA(true);
     try {
