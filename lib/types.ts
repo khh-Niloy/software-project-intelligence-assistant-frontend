@@ -124,3 +124,78 @@ export interface RepositoryFileContent {
   download_url?: string;
   content: string;
 }
+
+export interface TraceRequirement {
+  id: string;
+  title: string;
+  description: string;
+  status: 'pending' | 'accepted' | 'rejected' | string;
+}
+
+export interface TraceProject {
+  _id: string;
+  id?: string;
+  repoName: string;
+  totalRequirements?: number;
+  completedCount?: number;
+  partiallyCount?: number;
+  notImplementedCount?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface EvidenceItem {
+  filePath: string;
+  startLine: number;
+  endLine: number;
+  chunkId?: string;
+  explanation: string;
+}
+
+export type ImplementationStatus =
+  | 'completed'
+  | 'partially_implemented'
+  | 'not_implemented';
+
+export interface RequirementDoc {
+  _id: string;
+  id?: string;
+  requirementSlug: string;
+  title: string;
+  description: string;
+  source?: {
+    documentId?: string;
+    documentName?: string;
+    pageNumber?: number;
+  };
+  evidence: EvidenceItem[];
+  implementationStatus: ImplementationStatus;
+  repository: {
+    owner?: string;
+    name: string;
+    branch?: string;
+    commitSha?: string;
+  };
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ExtractRequirementsResponse {
+  documentName: string;
+  documentId?: string;
+  totalRequirements: number;
+  requirements: TraceRequirement[];
+}
+
+export interface ApproveTraceResponse {
+  message: string;
+  project: TraceProject;
+  summary: {
+    total: number;
+    completed: number;
+    partially_implemented: number;
+    not_implemented: number;
+  };
+  requirements: RequirementDoc[];
+}
+

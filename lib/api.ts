@@ -7,6 +7,11 @@ import {
   GithubRepo,
   RepositoryTreeResponse,
   RepositoryFileContent,
+  TraceRequirement,
+  TraceProject,
+  RequirementDoc,
+  ExtractRequirementsResponse,
+  ApproveTraceResponse,
 } from './types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
@@ -334,4 +339,175 @@ export async function fetchRepositoryContent(
   }
   const json = await res.json();
   return extractData<RepositoryFileContent>(json);
+}
+
+export async function extractRequirements(params: {
+  file?: File;
+  documentId?: string;
+}): Promise<ExtractRequirementsResponse> {
+  let res: Response;
+
+  if (params.file) {
+    const formData = new FormData();
+    formData.append('file', params.file);
+    if (params.documentId) {
+      formData.append('documentId', params.documentId);
+    }
+    res = await fetch(`${API_BASE}/trace/extract`, {
+      method: 'POST',
+      body: formData,
+    });
+  } else if (params.documentId) {
+    res = await fetch(`${API_BASE}/trace/extract`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ documentId: params.documentId }),
+    });
+  } else {
+    throw new Error('Please choose an existing document or upload a requirement file.');
+  }
+
+  if (!res.ok) {
+    let errorMsg = `Requirement extraction failed (${res.status} ${res.statusText})`;
+    try {
+      const errJson = await res.json();
+      if (errJson.message) {
+        errorMsg = Array.isArray(errJson.message)
+          ? errJson.message.join(', ')
+          : errJson.message;
+      }
+    } catch {
+      // ignore
+    }
+    throw new Error(errorMsg);
+  }
+
+  const json = await res.json();
+  return extractData<ExtractRequirementsResponse>(json);
+}
+
+export async function approveTraceRequirements(data: {
+  projectName?: string;
+  repoName: string;
+  repoOwner?: string;
+  documentId?: string;
+  documentName?: string;
+  requirements: TraceRequirement[];
+}): Promise<ApproveTraceResponse> {
+  const res = await fetch(`${API_BASE}/trace/approve`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    let errorMsg = `Failed to approve requirements (${res.status} ${res.statusText})`;
+    try {
+      const errJson = await res.json();
+      if (errJson.message) {
+        errorMsg = Array.isArray(errJson.message)
+          ? errJson.message.join(', ')
+          : errJson.message;
+      }
+    } catch {
+      // ignore
+    }
+    throw new Error(errorMsg);
+  }
+
+  const json = await res.json();
+  return extractData<ApproveTraceResponse>(json);
+}
+
+export async function fetchTraceProjects(): Promise<TraceProject[]> {
+  try {
+    const res = await fetch(`${API_BASE}/trace/projects`, {
+      cache: 'no-store',
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return extractData<TraceProject[]>(json) ?? [];
+  } catch (err) {
+    console.warn('Backend offline or unreachable when fetching trace projects:', err);
+    return [];
+  }
+}
+
+export async function fetchTraceRequirementsByRepo(
+  repoName: string,
+): Promise<RequirementDoc[]> {
+  try {
+    const res = await fetch(
+      `${API_BASE}/trace/requirements/${encodeURIComponent(repoName)}`,
+      {
+        cache: 'no-store',
+      },
+    );
+    if (!res.ok) return [];
+    const json = await res.json();
+    return extractData<RequirementDoc[]>(json) ?? [];
+  } catch (err) {
+    console.warn(
+      `Backend offline or unreachable when fetching requirements for ${repoName}:`,
+      err,
+    );
+    return [];
+  }
+}
+
+export async function deleteTraceProject(id: string): Promise<{
+  message: string;
+  deletedRequirements: number;
+}> {
+  const res = await fetch(`${API_BASE}/trace/projects/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+
+  if (!res.ok) {
+    let errorMsg = `Failed to delete project (${res.status} ${res.statusText})`;
+    try {
+      const errJson = await res.json();
+      if (errJson.message) {
+        errorMsg = Array.isArray(errJson.message)
+          ? errJson.message.join(', ')
+          : errJson.message;
+      }
+    } catch {
+      // ignore
+    }
+    throw new Error(errorMsg);
+  }
+
+  return extractData<{ message: string; deletedRequirements: number }>(
+    await res.json(),
+  );
+}
+
+export async function deleteTraceRequirement(id: string): Promise<{
+  message: string;
+  deletedRequirementId: string;
+}> {
+  const res = await fetch(
+    `${API_BASE}/trace/requirements/${encodeURIComponent(id)}`,
+    { method: 'DELETE' },
+  );
+
+  if (!res.ok) {
+    let errorMsg = `Failed to delete requirement (${res.status} ${res.statusText})`;
+    try {
+      const errJson = await res.json();
+      if (errJson.message) {
+        errorMsg = Array.isArray(errJson.message)
+          ? errJson.message.join(', ')
+          : errJson.message;
+      }
+    } catch {
+      // ignore
+    }
+    throw new Error(errorMsg);
+  }
+
+  return extractData<{ message: string; deletedRequirementId: string }>(
+    await res.json(),
+  );
 }
