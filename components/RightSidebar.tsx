@@ -154,7 +154,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
 
       {/* TAB 1: DOCUMENTS */}
       {activeTab === 'documents' && (
-        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+        <div key="documents-tab" className="flex-1 flex flex-col min-h-0 overflow-hidden animate-fade-in">
           <input
             ref={fileInputRef}
             type="file"
@@ -317,7 +317,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
 
       {/* TAB 2: PREVIOUS CHATS */}
       {activeTab === 'chats' && (
-        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+        <div key="chats-tab" className="flex-1 flex flex-col min-h-0 overflow-hidden animate-fade-in">
           {/* Header indicator */}
           <div className="px-4 py-2.5 border-b border-slate-100/70 flex items-center justify-between shrink-0 bg-white/40">
             <div className="flex items-center gap-2">

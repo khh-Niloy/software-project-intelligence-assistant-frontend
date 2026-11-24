@@ -192,46 +192,48 @@ export const GithubRepoSidebar: React.FC<GithubRepoSidebarProps> = ({
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto p-2.5 space-y-1.5">
         {isConnected && activeSidebarTab === "chats" ? (
-          isLoadingHistory ? (
-            <div className="p-3 text-center text-xs text-neutral-500">
-              Loading previous chats…
-            </div>
-          ) : history.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center p-4 text-center text-neutral-500">
-              <MessageSquare className="w-8 h-8 mb-2 stroke-1 text-neutral-400" />
-              <p className="text-xs font-medium">No repository chats yet</p>
-              <p className="text-[11px] mt-1">
-                Questions about repositories will appear here.
-              </p>
-            </div>
-          ) : (
-            history.map((qna) => {
-              const qnaId = qna._id || qna.id || "";
-              const isSelected = qnaId === selectedQnaId;
-              return (
-                <button
-                  key={qnaId}
-                  type="button"
-                  onClick={() => onSelectQna(qna)}
-                  className={`w-full text-left p-2.5 rounded-xl border transition-all cursor-pointer ${isSelected ? "bg-white border-blue-400/80 shadow-[0_4px_16px_rgba(59,130,246,0.12)] ring-1 ring-blue-400/20" : "bg-white/70 hover:bg-white border-slate-100/90 hover:border-slate-200 shadow-[0_2px_8px_rgba(120,135,170,0.04)]"}`}
-                >
-                  <p className="text-xs font-semibold text-slate-800 line-clamp-1">
-                    {qna.question}
-                  </p>
-                  <p className="text-[10px] text-blue-600 font-medium mt-0.5 truncate">
-                    {qna.repoName || qna.documentName || "Repository"}
-                  </p>
-                  {qna.createdAt && (
-                    <p className="text-[10px] text-slate-400 mt-0.5">
-                      {new Date(qna.createdAt).toLocaleString()}
+          <div key="chats" className="space-y-1.5 animate-fade-in">
+            {isLoadingHistory ? (
+              <div className="p-3 text-center text-xs text-neutral-500">
+                Loading previous chats…
+              </div>
+            ) : history.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center p-4 text-center text-neutral-500">
+                <MessageSquare className="w-8 h-8 mb-2 stroke-1 text-neutral-400" />
+                <p className="text-xs font-medium">No repository chats yet</p>
+                <p className="text-[11px] mt-1">
+                  Questions about repositories will appear here.
+                </p>
+              </div>
+            ) : (
+              history.map((qna) => {
+                const qnaId = qna._id || qna.id || "";
+                const isSelected = qnaId === selectedQnaId;
+                return (
+                  <button
+                    key={qnaId}
+                    type="button"
+                    onClick={() => onSelectQna(qna)}
+                    className={`w-full text-left p-2.5 rounded-xl border transition-all cursor-pointer ${isSelected ? "bg-white border-blue-400/80 shadow-[0_4px_16px_rgba(59,130,246,0.12)] ring-1 ring-blue-400/20" : "bg-white/70 hover:bg-white border-slate-100/90 hover:border-slate-200 shadow-[0_2px_8px_rgba(120,135,170,0.04)]"}`}
+                  >
+                    <p className="text-xs font-semibold text-slate-800 line-clamp-1">
+                      {qna.question}
                     </p>
-                  )}
-                </button>
-              );
-            })
-          )
+                    <p className="text-[10px] text-blue-600 font-medium mt-0.5 truncate">
+                      {qna.repoName || qna.documentName || "Repository"}
+                    </p>
+                    {qna.createdAt && (
+                      <p className="text-[10px] text-slate-400 mt-0.5">
+                        {new Date(qna.createdAt).toLocaleString()}
+                      </p>
+                    )}
+                  </button>
+                );
+              })
+            )}
+          </div>
         ) : (
-          <>
+          <div key="repos" className="space-y-1.5 animate-fade-in">
             {/* State 1: Not connected */}
             {!isConnected ? (
               <div className="h-full flex flex-col items-center justify-center p-4 text-center">
@@ -413,7 +415,7 @@ export const GithubRepoSidebar: React.FC<GithubRepoSidebarProps> = ({
                 );
               })
             )}
-          </>
+          </div>
         )}
       </div>
 

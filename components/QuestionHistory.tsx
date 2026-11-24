@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
+import devmindLogo from '@/public/devmind-logo.png';
 import { QAItem } from '../lib/types';
 import { MessageSquare, Clock, ArrowUpRight, Zap } from 'lucide-react';
 
@@ -36,13 +37,13 @@ export const QuestionHistory: React.FC<QuestionHistoryProps> = ({
       {/* Header with App Logo and Brand Title */}
       <div className="p-3 border-b border-[#e5e7eb] flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 relative rounded-lg bg-white shadow-2xs border border-[#e5e7eb] flex items-center justify-center p-1">
+          <div className="w-7 h-7 relative rounded-lg bg-white shadow-2xs border border-slate-200/80 flex items-center justify-center shrink-0 p-0.5 overflow-hidden">
             <Image
-              src="/logo.png"
+              src={devmindLogo}
               alt="DevMind Logo"
-              width={22}
-              height={22}
-              className="object-contain"
+              width={28}
+              height={28}
+              className="w-full h-full object-contain"
               priority
             />
           </div>
@@ -112,28 +113,25 @@ export const QuestionHistory: React.FC<QuestionHistoryProps> = ({
               <div
                 key={itemId}
                 onClick={() => onSelectQA(qa)}
-                className={`w-full text-left p-2.5 rounded-lg border transition-all duration-150 group relative cursor-pointer ${
-                  isSelected
-                    ? 'bg-blue-50/80 border-blue-300 text-blue-950 shadow-2xs ring-1 ring-blue-400/30'
-                    : 'bg-transparent hover:bg-[#efefef] border-transparent text-[#262626]'
-                }`}
+                className={`w-full text-left p-2.5 rounded-lg border transition-all duration-150 group relative cursor-pointer ${isSelected
+                  ? 'bg-blue-50/80 border-blue-300 text-blue-950 shadow-2xs ring-1 ring-blue-400/30'
+                  : 'bg-transparent hover:bg-[#efefef] border-transparent text-[#262626]'
+                  }`}
               >
                 <div className="flex items-center justify-between gap-1 mb-1">
                   <span
-                    className={`text-[10px] font-medium px-1.5 py-0.5 rounded border max-w-[130px] truncate shadow-2xs ${
-                      isSelected
-                        ? 'bg-blue-100/70 border-blue-200 text-blue-800'
-                        : 'bg-white border-[#e5e7eb] text-[#525252]'
-                    }`}
+                    className={`text-[10px] font-medium px-1.5 py-0.5 rounded border max-w-[130px] truncate shadow-2xs ${isSelected
+                      ? 'bg-blue-100/70 border-blue-200 text-blue-800'
+                      : 'bg-white border-[#e5e7eb] text-[#525252]'
+                      }`}
                   >
                     {qa.documentName || 'Document'}
                   </span>
                   <div className="flex items-center gap-1.5 shrink-0">
                     {dateStr && (
                       <span
-                        className={`text-[10px] flex items-center gap-1 font-mono ${
-                          isSelected ? 'text-blue-700/80' : 'text-[#8e8e8e]'
-                        }`}
+                        className={`text-[10px] flex items-center gap-1 font-mono ${isSelected ? 'text-blue-700/80' : 'text-[#8e8e8e]'
+                          }`}
                         suppressHydrationWarning
                       >
                         <Clock className="w-2.5 h-2.5 shrink-0" />
