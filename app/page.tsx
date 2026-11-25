@@ -132,6 +132,8 @@ export default function Home() {
     }
   }, []);
 
+  //test
+
   const loadGithubStatus = useCallback(async () => {
     try {
       const status = await fetchGithubStatus();
@@ -457,11 +459,10 @@ export default function Home() {
       {/* 1. LEFT SIDEBAR SLOT: Preserves space so center never jumps; empty when closed */}
       <div className="hidden md:flex h-full max-h-[92vh] shrink-0 w-64 lg:w-72 items-center justify-center">
         <div
-          className={`w-full h-full transition-all duration-300 ${
-            isLeftOpen
+          className={`w-full h-full transition-all duration-300 ${isLeftOpen
               ? "opacity-100 scale-100"
               : "opacity-0 scale-95 pointer-events-none invisible"
-          }`}
+            }`}
         >
           <LeftSidebar
             activeNav={activeNav}
@@ -510,9 +511,8 @@ export default function Home() {
 
       {/* 2. CENTER MAIN WORKSPACE TABLET */}
       <div
-        className={`flex-1 flex flex-col h-full max-h-[92vh] min-w-0 ${
-          activeNav === "traceability" ? "max-w-7xl" : "max-w-5xl xl:max-w-6xl"
-        } relative transition-all duration-300`}
+        className={`flex-1 flex flex-col h-full max-h-[92vh] min-w-0 ${activeNav === "traceability" ? "max-w-7xl" : "max-w-5xl xl:max-w-6xl"
+          } relative transition-all duration-300`}
       >
         {/* Mobile Header Bar */}
         <div className="md:hidden flex items-center justify-between px-3 py-2.5 border-b border-[#e5e7eb] bg-white rounded-t-2xl">
@@ -612,11 +612,10 @@ export default function Home() {
       {activeNav !== "traceability" && (
         <div className="hidden md:flex h-full max-h-[92vh] shrink-0 w-80 lg:w-84 items-center justify-center">
           <div
-            className={`w-full h-full transition-all duration-300 ${
-              isRightOpen
+            className={`w-full h-full transition-all duration-300 ${isRightOpen
                 ? "opacity-100 scale-100"
                 : "opacity-0 scale-95 pointer-events-none invisible"
-            }`}
+              }`}
           >
             {activeNav === "doc-query" ? (
               <RightSidebar
