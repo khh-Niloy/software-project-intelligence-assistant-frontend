@@ -27,13 +27,13 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
       <div className="flex-1 min-h-0 flex flex-col overflow-y-auto">
         <div className="h-14 px-4 border-b border-slate-100/70 flex items-center justify-between gap-2 bg-white/40 shrink-0">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-white border border-slate-200/80 shadow-xs flex items-center justify-center p-1 shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-white border border-slate-200/80 shadow-xs flex items-center justify-center p-0.5 shrink-0 overflow-hidden">
               <Image
-                src="/logo.png"
+                src={devmindLogo}
                 alt="DevMind Logo"
-                width={24}
-                height={24}
-                className="object-contain"
+                width={32}
+                height={32}
+                className="w-full h-full object-contain"
                 priority
               />
             </div>
@@ -155,8 +155,14 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
               className="w-8 h-8 rounded-full border border-slate-200/80 shrink-0 object-cover"
             />
           ) : (
-            <div className="w-8 h-8 rounded-full bg-slate-100 border border-slate-200/80 text-slate-600 flex items-center justify-center shrink-0">
-              <User className="w-4 h-4 text-slate-500" />
+            <div className="w-8 h-8 rounded-full bg-white border border-slate-200/80 shadow-2xs flex items-center justify-center p-0.5 shrink-0 overflow-hidden">
+              <Image
+                src={devmindLogo}
+                alt="DevMind Workspace"
+                width={32}
+                height={32}
+                className="w-full h-full object-contain"
+              />
             </div>
           )}
           <div className="min-w-0 flex-1">
