@@ -132,6 +132,8 @@ export default function Home() {
     }
   }, []);
 
+  //test
+
   const loadGithubStatus = useCallback(async () => {
     try {
       const status = await fetchGithubStatus();
@@ -457,11 +459,10 @@ export default function Home() {
       {/* 1. LEFT SIDEBAR SLOT: Preserves space so center never jumps; empty when closed */}
       <div className="hidden md:flex h-full max-h-[92vh] shrink-0 w-64 lg:w-72 items-center justify-center">
         <div
-          className={`w-full h-full transition-all duration-300 ${
-            isLeftOpen
+          className={`w-full h-full transition-all duration-300 ${isLeftOpen
               ? "opacity-100 scale-100"
               : "opacity-0 scale-95 pointer-events-none invisible"
-          }`}
+            }`}
         >
           <LeftSidebar
             activeNav={activeNav}
